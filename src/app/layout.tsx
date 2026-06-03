@@ -16,14 +16,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-zinc-50/50 text-zinc-900 min-h-screen">
-        {children}
-        <Script 
+      <head>
+        {/* Traditional, plain HTML script tag so the AdSense crawler doesn't panic */}
+        <script 
           async 
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4604731432144657" 
-          crossOrigin="anonymous" 
-          strategy="afterInteractive"
-        />
+          crossOrigin="anonymous"
+        ></script>
+      </head>
+      <body className="antialiased bg-zinc-50/50 text-zinc-900 min-h-screen">
+        {children}
       </body>
     </html>
   );
