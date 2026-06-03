@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Sparkles, Coins, HelpCircle, Landmark, Check, AlertCircle, Target, Plus, Trash2, PiggyBank } from 'lucide-react';
+import { TrendingUp, Sparkles, Coins, HelpCircle, Landmark, Check, AlertCircle, Target, Plus, Trash2, PiggyBank, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface SavingsCompounderProps {
   monthlySurplus: number;
@@ -31,26 +31,16 @@ export default function SavingsCompounder({
   formatGBP
 }: SavingsCompounderProps) {
   // Multiple Accounts state
-  const [accounts, setAccounts] = useState<SavingsAccount[]>([
+  const [accounts, setAccounts] = useState<SavingsAccount[]>(() => [
     {
       id: 'acc-1',
       name: 'Investment Account',
-      initialCapital: '5000',
+      initialCapital: allocatedSavings.toString(),
       depositSource: 'allocated',
       customMonthly: '250',
       returnRate: '6.5',
       compoundingPeriods: '12',
       years: 15,
-    },
-    {
-      id: 'acc-2',
-      name: 'High Interest Savings',
-      initialCapital: '1000',
-      depositSource: 'custom',
-      customMonthly: '150',
-      returnRate: '5.0',
-      compoundingPeriods: '12',
-      years: 5,
     }
   ]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('acc-1');
@@ -59,17 +49,13 @@ export default function SavingsCompounder({
   const [goals, setGoals] = useState<SavingsGoal[]>([
     {
       id: 'goal-1',
-      name: 'New Car Fund',
+      name: 'Example - New Car',
       targetAmount: 10000,
       linkedAccountId: 'acc-1'
-    },
-    {
-      id: 'goal-2',
-      name: 'Emergency Buffer',
-      targetAmount: 5000,
-      linkedAccountId: 'acc-2'
     }
   ]);
+
+  const [goalsExpanded, setGoalsExpanded] = useState<boolean>(false);
 
   // Modal / inline input states for additions
   const [newGoalName, setNewGoalName] = useState<string>('');
@@ -78,6 +64,8 @@ export default function SavingsCompounder({
 
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [isAddingAccount, setIsAddingAccount] = useState<boolean>(false);
+  const [isChartVisible, setIsChartVisible] = useState(true);
+  const [isTableVisible, setIsTableVisible] = useState(false);
 
   const [showTolerance, setShowTolerance] = useState<boolean>(false);
   const [hoveredYear, setHoveredYear] = useState<number | null>(null);
@@ -114,11 +102,9 @@ export default function SavingsCompounder({
   // Advice calculator of duration required to reach goal
   const calculateTimeToReachGoal = (account: SavingsAccount, target: number) => {
     const pv = parseFloat(account.initialCapital) || 0;
-    if (pv >= target) return { years: 0, months: 0, impossible: false, reached: true };
-
+    
     const r = (parseFloat(account.returnRate) || 0) / 100;
     const k = parseInt(account.compoundingPeriods, 10) || 12;
-    const ratePerPeriod = r / k;
     
     let deposit = 0;
     if (account.depositSource === 'allocated') {
@@ -129,8 +115,15 @@ export default function SavingsCompounder({
       deposit = parseFloat(account.customMonthly) || 0;
     }
 
+    // Non-compounding: just simple additions
+    const monthsNonCompounding = deposit > 0 ? Math.ceil((target - pv) / deposit) : Infinity;
+
+    if (pv >= target) return { years: 0, months: 0, nonCompoundingMonths: 0, impossible: false, reached: true, interestEarned: 0 };
+    
+    const ratePerPeriod = r / k;
+
     if (deposit <= 0 && ratePerPeriod <= 0) {
-      return { years: 0, months: 0, impossible: true, reached: false };
+      return { years: 0, months: 0, nonCompoundingMonths: monthsNonCompounding, impossible: true, reached: false, interestEarned: 0 };
     }
 
     let val = pv;
@@ -145,14 +138,16 @@ export default function SavingsCompounder({
     }
 
     if (periods >= maxPeriods) {
-      return { years: 0, months: 0, impossible: true, reached: false };
+      return { years: 0, months: 0, nonCompoundingMonths: monthsNonCompounding, impossible: true, reached: false, interestEarned: 0 };
     }
 
     const totalMonths = Math.ceil(periods * (monthsInYear / k));
     const yrs = Math.floor(totalMonths / 12);
     const mths = totalMonths % 12;
 
-    return { years: yrs, months: mths, impossible: false, reached: false };
+    const interestEarned = Math.max(0, val - (pv + deposit * totalMonths));
+
+    return { years: yrs, months: mths, nonCompoundingMonths: monthsNonCompounding, impossible: false, reached: false, interestEarned };
   };
 
   const parsedInitial = useMemo(() => {
@@ -304,6 +299,19 @@ export default function SavingsCompounder({
 
   const interestRatio = 100 - principalRatio;
 
+  const downloadSavingsCSV = () => {
+    const header = ['Year,Balance,Deposits,Interest'];
+    const rows = projections.yearlyMilestones.map(m => `${m.year},${m.balance.toFixed(2)},${m.deposits.toFixed(2)},${m.interest.toFixed(2)}`);
+    const csvContent = [header, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'savings_projection.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-8" id="savings-compounder-container">
       {/* Page Header */}
@@ -358,6 +366,7 @@ export default function SavingsCompounder({
                   setNewAccountName('');
                 }}
                 className="cursor-pointer text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded"
+                title="Add a new investment account to track separate savings goals."
               >
                 <Plus className="w-3 h-3" />
                 <span>Add Account</span>
@@ -591,16 +600,6 @@ export default function SavingsCompounder({
               className="w-full accent-zinc-900 h-1 rounded-lg bg-zinc-200 cursor-pointer"
             />
             <div className="grid grid-cols-3 gap-1 pt-1">
-              {[4.0, 7.0, 10.0].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setReturnRate(val.toFixed(1))}
-                  className="cursor-pointer text-[9px] font-bold border border-zinc-200 rounded py-1 bg-zinc-50 text-zinc-650 hover:bg-zinc-100/70"
-                >
-                  {val}% Acc
-                </button>
-              ))}
             </div>
 
             {/* Interest Tolerance Band Toggle */}
@@ -664,6 +663,234 @@ export default function SavingsCompounder({
 
         {/* ANALYTICS COLUMN */}
         <div className="lg:col-span-7 space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-black text-zinc-950">Projections & Goals</h3>
+            <button
+              onClick={() => setGoalsExpanded(!goalsExpanded)}
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+            >
+              {goalsExpanded ? 'Hide Savings Targets' : 'Add/View Savings Targets'}
+              {goalsExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          </div>
+
+          {goalsExpanded && (
+            <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-sm space-y-4">
+              {goals.map(goal => {
+                const linkedAcc = accounts.find(a => a.id === goal.linkedAccountId);
+                let timeToGoalElement: React.ReactNode | null = null;
+                let advice = { reached: false, impossible: true, years: 0, months: 0, nonCompoundingMonths: Infinity, interestEarned: 0 };
+                
+                if (linkedAcc) {
+                  advice = calculateTimeToReachGoal(linkedAcc, goal.targetAmount);
+                  if (advice.reached) {
+                    timeToGoalElement = (
+                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
+                        ✅ Goal Reached
+                      </span>
+                    );
+                  } else if (advice.impossible) {
+                    timeToGoalElement = (
+                      <span className="text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded font-mono">
+                        Requires Deposits
+                      </span>
+                    );
+                  } else {
+                    timeToGoalElement = (
+                      <span className="text-[10px] font-black text-zinc-800 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded font-mono">
+                        ⏱️ {advice.years}y {advice.months}m left
+                      </span>
+                    );
+                  }
+                } else {
+                    timeToGoalElement = <span className="text-[10px] text-zinc-400">Account not found</span>;
+                }
+
+                // Balance of linked account at selected target year (use activeHoverIdx if hovered, else standard years)
+                const activeHoverIdx = hoveredYear !== null ? hoveredYear : (linkedAcc?.years || 15);
+                
+                // Compounding calculation specifically for this linked account at this specific year
+                let currentLinkedBalance = 0;
+                if (linkedAcc) {
+                  const pv = parseFloat(linkedAcc.initialCapital) || 0;
+                  const r = (parseFloat(linkedAcc.returnRate) || 0) / 100;
+                  const k = parseInt(linkedAcc.compoundingPeriods, 10) || 12;
+                  const ratePerPeriod = r / k;
+                  
+                  let deposit = 0;
+                  if (linkedAcc.depositSource === 'allocated') {
+                    deposit = allocatedSavings;
+                  } else if (linkedAcc.depositSource === 'surplus') {
+                    deposit = monthlySurplus;
+                  } else {
+                    deposit = parseFloat(linkedAcc.customMonthly) || 0;
+                  }
+
+                  let val = pv;
+                  const depositPerPeriod = deposit * (12 / k);
+                  const totalPeriods = k * activeHoverIdx;
+                  for (let p = 1; p <= totalPeriods; p++) {
+                    val += val * ratePerPeriod + depositPerPeriod;
+                  }
+                  currentLinkedBalance = val;
+                }
+
+                const totalMonthsCompounding = advice.years * 12 + advice.months;
+                const timeSavedMonths = advice.nonCompoundingMonths !== Infinity ? advice.nonCompoundingMonths - totalMonthsCompounding : 0;
+                const timeSavedYrs = Math.floor(timeSavedMonths / 12);
+                const timeSavedMths = timeSavedMonths % 12;
+
+                return (
+                  <div key={goal.id} className="p-3.5 bg-zinc-50 border border-zinc-150 rounded-xl space-y-3 transition-all relative">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-black text-zinc-900">{goal.name}</span>
+                          <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                            Target: {formatGBP(goal.targetAmount)}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 block leading-tight mt-1">
+                          Funding Account: <strong className="text-zinc-700">{linkedAcc?.name || "None (Unassigned)"}</strong>
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        {timeToGoalElement}
+                      </div>
+                    </div>
+
+                    {!advice.impossible && (
+                      <div className="grid grid-cols-2 gap-2 text-[10px] bg-white p-3 rounded-lg border border-zinc-100">
+                        <div className="space-y-0.5">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Time to Goal</span>
+                           <p className="font-black text-zinc-900 text-xs">
+                             {advice.reached ? "Reached" : `${advice.years}y ${advice.months}m`}
+                           </p>
+                        </div>
+                        <div className="space-y-0.5">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Time Saved</span>
+                           <p className="font-black text-emerald-700 text-xs">
+                             {advice.nonCompoundingMonths !== Infinity ? `${timeSavedYrs > 0 ? `${timeSavedYrs}y ` : ''}${timeSavedMths}m` : 'N/A'}
+                           </p>
+                        </div>
+                        <div className="space-y-0.5 col-span-2 border-t border-zinc-100 pt-2 mt-1">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Compounding Gain</span>
+                           <p className="font-black text-emerald-700 text-xs">
+                             +{formatGBP(advice.interestEarned)}
+                           </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Goal controls inline */}
+                    <div className="flex flex-wrap items-center justify-between pt-2 border-t border-zinc-250/60 gap-1 text-[9px] text-zinc-500">
+                      <div className="flex items-center gap-1">
+                        <span className="font-bold">Edit Target:</span>
+                        <input
+                          type="number"
+                          value={goal.targetAmount}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value);
+                            setGoals(prev => prev.map(g => g.id === goal.id ? { ...g, targetAmount: isNaN(val) || val < 0 ? 0 : val } : g));
+                          }}
+                          className="w-16 px-1.5 py-0.5 border border-zinc-200 rounded bg-white font-bold text-zinc-800 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold">Link Account:</span>
+                        <select
+                          value={goal.linkedAccountId}
+                          onChange={e => {
+                            const accId = e.target.value;
+                            setGoals(prev => prev.map(g => g.id === goal.id ? { ...g, linkedAccountId: accId } : g));
+                          }}
+                          className="px-1.5 py-0.5 border border-zinc-200 rounded bg-white text-[9px] font-bold text-zinc-855"
+                        >
+                          {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setGoals(prev => prev.filter(g => g.id !== goal.id));
+                          }}
+                          className="text-red-500 hover:text-red-700 font-bold ml-1"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Add Goal Section */}
+              <div className="pt-2.5 border-t border-zinc-150 space-y-2">
+                <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest block">Configure New Goal</span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                  <div className="sm:col-span-4">
+                    <input
+                      type="text"
+                      placeholder="e.g. Wedding, Property Deposit"
+                      value={newGoalName}
+                      onChange={e => setNewGoalName(e.target.value)}
+                      className="w-full text-xs px-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:bg-white focus:border-zinc-400 font-bold"
+                    />
+                  </div>
+                  <div className="sm:col-span-3">
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">£</span>
+                      <input
+                        type="number"
+                        placeholder="Target sum"
+                        value={newGoalTarget}
+                        onChange={e => setNewGoalTarget(e.target.value)}
+                        className="w-full text-xs pl-5 pr-2 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:bg-white focus:border-zinc-400 font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div className="sm:col-span-3">
+                    <select
+                      value={newGoalAccountId}
+                      onChange={e => setNewGoalAccountId(e.target.value)}
+                      className="w-full text-xs px-1 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:border-zinc-400 font-bold"
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nameTrim = newGoalName.trim();
+                        const tgtAmt = parseFloat(newGoalTarget);
+                        if (!nameTrim || isNaN(tgtAmt) || tgtAmt <= 0) return;
+                        
+                        const newId = `goal-${Date.now()}`;
+                        setGoals(prev => [...prev, {
+                          id: newId,
+                          name: nameTrim,
+                          targetAmount: tgtAmt,
+                          linkedAccountId: newGoalAccountId
+                        }]);
+                        setNewGoalName('');
+                        setNewGoalTarget('');
+                      }}
+                      className="cursor-pointer w-full bg-zinc-900 text-white text-[10px] font-black h-[28px] rounded-lg hover:bg-zinc-800 transition-colors uppercase"
+                    >
+                      Create
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Main Highlights Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="compound-highlights-grid">
             <div className="bg-white border border-zinc-200 p-4.5 rounded-2xl shadow-sm space-y-0.5">
@@ -694,7 +921,24 @@ export default function SavingsCompounder({
           </div>
 
           {/* Interactive Chart Section */}
-          {(() => {
+          <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-sm space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-zinc-150">
+                  <h4 className="text-xs font-extrabold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                    Dynamic Growth Trajectory
+                  </h4>
+                  <div className="flex gap-2 items-center">
+                    <button
+                        onClick={downloadSavingsCSV}
+                        className="text-[10px] font-bold text-white bg-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-700"
+                    >
+                      Download CSV
+                    </button>
+                    <button onClick={() => { setIsChartVisible(!isChartVisible); setIsTableVisible(false); }} className={`px-2 py-1 rounded text-[10px] font-bold ${isChartVisible ? 'bg-emerald-600 text-white' : 'bg-zinc-100'}`}>Graph</button>
+                    <button onClick={() => { setIsTableVisible(!isTableVisible); setIsChartVisible(false); }} className={`px-2 py-1 rounded text-[10px] font-bold ${isTableVisible ? 'bg-emerald-600 text-white' : 'bg-zinc-100'}`}>Table</button>
+                  </div>
+              </div>
+          {isChartVisible && (() => {
             // SVG drawing configuration
             const chartWidth = 600;
             const chartHeight = 240;
@@ -706,13 +950,13 @@ export default function SavingsCompounder({
             const plotWidth = chartWidth - paddingLeft - paddingRight;
             const plotHeight = chartHeight - paddingTop - paddingBottom;
 
-            const getX = (index: number) => {
-              return paddingLeft + (index / years) * plotWidth;
-            };
-
             const getY = (value: number) => {
               if (maxBalance === 0) return paddingTop + plotHeight;
               return paddingTop + plotHeight - (value / maxBalance) * plotHeight;
+            };
+
+            const getX = (index: number) => {
+              return paddingLeft + (index / years) * plotWidth;
             };
 
             // Generate ticks for Y axis (4 segments)
@@ -1074,6 +1318,31 @@ export default function SavingsCompounder({
               </div>
             );
           })()}
+          {isTableVisible && (
+              <div className="overflow-x-auto">
+                 <table className="w-full text-xs text-left">
+                   <thead>
+                     <tr>
+                       <th className="p-2 border-b">Year</th>
+                       <th className="p-2 border-b">Balance</th>
+                       <th className="p-2 border-b">Deposits</th>
+                       <th className="p-2 border-b">Interest</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {projections.yearlyMilestones.map(m => (
+                       <tr key={m.year}>
+                         <td className="p-2 border-b">{m.year}</td>
+                         <td className="p-2 border-b">{formatGBP(m.balance)}</td>
+                         <td className="p-2 border-b">{formatGBP(m.deposits)}</td>
+                         <td className="p-2 border-b">{formatGBP(m.interest)}</td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+              </div>
+          )}
+          </div>
 
           {/* Savings Target Goals Section */}
           <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-sm space-y-4" id="savings-budget-goals">
@@ -1091,18 +1360,19 @@ export default function SavingsCompounder({
               {goals.map(goal => {
                 const linkedAcc = accounts.find(a => a.id === goal.linkedAccountId);
                 let timeToGoalElement: React.ReactNode = null;
-
+                let advice = { reached: false, impossible: true, years: 0, months: 0, nonCompoundingMonths: Infinity, interestEarned: 0 };
+                
                 if (linkedAcc) {
-                  const advice = calculateTimeToReachGoal(linkedAcc, goal.targetAmount);
+                  advice = calculateTimeToReachGoal(linkedAcc, goal.targetAmount);
                   if (advice.reached) {
                     timeToGoalElement = (
-                      <span className="text-[10px] font-black text-emerald-650 bg-emerald-50 px-2 py-0.5 rounded-md">
-                        Reached! 🎉
+                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
+                        ✅ Goal Reached
                       </span>
                     );
                   } else if (advice.impossible) {
                     timeToGoalElement = (
-                      <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded font-mono">
                         Requires Deposits
                       </span>
                     );
@@ -1113,6 +1383,8 @@ export default function SavingsCompounder({
                       </span>
                     );
                   }
+                } else {
+                    timeToGoalElement = <span className="text-[10px] text-zinc-400">Account not found</span>;
                 }
 
                 // Balance of linked account at selected target year (use activeHoverIdx if hovered, else standard years)
@@ -1144,7 +1416,10 @@ export default function SavingsCompounder({
                   currentLinkedBalance = val;
                 }
 
-                const progressPct = Math.min(100, Math.round((currentLinkedBalance / goal.targetAmount) * 100));
+                const totalMonthsCompounding = advice.years * 12 + advice.months;
+                const timeSavedMonths = advice.nonCompoundingMonths !== Infinity ? advice.nonCompoundingMonths - totalMonthsCompounding : 0;
+                const timeSavedYrs = Math.floor(timeSavedMonths / 12);
+                const timeSavedMths = timeSavedMonths % 12;
 
                 return (
                   <div key={goal.id} className="p-3.5 bg-zinc-50 border border-zinc-150 rounded-xl space-y-3 transition-all relative">
@@ -1165,19 +1440,28 @@ export default function SavingsCompounder({
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[9px] font-bold text-zinc-500">
-                        <span>Balance at Year {activeHoverIdx}: {formatGBP(currentLinkedBalance)}</span>
-                        <span>{progressPct}%</span>
+                    {!advice.impossible && (
+                      <div className="grid grid-cols-2 gap-2 text-[10px] bg-white p-3 rounded-lg border border-zinc-100">
+                        <div className="space-y-0.5">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Time to Goal</span>
+                           <p className="font-black text-zinc-900 text-xs">
+                             {advice.reached ? "Reached" : `${advice.years}y ${advice.months}m`}
+                           </p>
+                        </div>
+                        <div className="space-y-0.5">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Time Saved</span>
+                           <p className="font-black text-emerald-700 text-xs">
+                             {advice.nonCompoundingMonths !== Infinity ? `${timeSavedYrs > 0 ? `${timeSavedYrs}y ` : ''}${timeSavedMths}m` : 'N/A'}
+                           </p>
+                        </div>
+                        <div className="space-y-0.5 col-span-2 border-t border-zinc-100 pt-2 mt-1">
+                           <span className="text-zinc-500 font-bold uppercase tracking-wider block">Compounding Gain</span>
+                           <p className="font-black text-emerald-700 text-xs">
+                             +{formatGBP(advice.interestEarned)}
+                           </p>
+                        </div>
                       </div>
-                      <div className="h-2 w-full bg-zinc-200 rounded-full overflow-hidden shadow-inner flex">
-                        <div
-                          className={`h-full transition-all duration-300 ${progressPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/70'}`}
-                          style={{ width: `${progressPct}%` }}
-                        />
-                      </div>
-                    </div>
+                    )}
 
                     {/* Goal controls inline */}
                     <div className="flex flex-wrap items-center justify-between pt-2 border-t border-zinc-250/60 gap-1 text-[9px] text-zinc-500">

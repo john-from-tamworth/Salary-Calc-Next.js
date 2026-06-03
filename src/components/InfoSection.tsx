@@ -14,6 +14,13 @@ export default function InfoSection() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-zinc-50 rounded-xl p-3.5 border border-zinc-100 space-y-2">
+          <h5 className="text-xs font-bold text-zinc-800">Methodology & Data Sources</h5>
+          <p className="text-[10px] text-zinc-600 leading-relaxed font-medium">
+            We use the latest HMRC tax tables for 2025/26 to ensure calculations are accurate. Data is updated frequently to reflect policy changes, ensuring you can plan with confidence.
+          </p>
+        </div>
+
         {/* Left Column: Tax Bands */}
         <div className="space-y-4">
           <div className="flex items-start gap-2">

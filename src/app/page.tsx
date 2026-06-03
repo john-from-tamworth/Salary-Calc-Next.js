@@ -21,9 +21,9 @@ export default function Home() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
   // Core Calculator Input States (Scenario A)
-  const [grossInputA, setGrossInputA] = useState<string>('50000');
+  const [grossInputA, setGrossInputA] = useState<string>('33000');
   const [regionA, setRegionA] = useState<'UK' | 'Scotland'>('UK');
-  const [pensionRateA, setPensionRateA] = useState<number>(5);
+  const [pensionRateA, setPensionRateA] = useState<number>(0);
   const [pensionTypeA, setPensionTypeA] = useState<'salarySacrifice' | 'netPay' | 'reliefAtSource'>('salarySacrifice');
   const [pensionOnA, setPensionOnA] = useState<'total' | 'qualifying'>('total');
   const [studentLoanPlansA, setStudentLoanPlansA] = useState<string[]>([]);
@@ -32,11 +32,15 @@ export default function Home() {
   const [blindAllowanceA, setBlindAllowanceA] = useState<boolean>(false);
   const [marriageAllowanceModeA, setMarriageAllowanceModeA] = useState<'receive' | 'transfer' | 'none'>('none');
   const [benefitsInKindA, setBenefitsInKindA] = useState<number>(0);
+  const [bonusInputA, setBonusInputA] = useState<string>('0');
+  const [overtimeInputA, setOvertimeInputA] = useState<string>('0');
+  const [childcareInputA, setChildcareInputA] = useState<string>('0');
+  const [childBenefitInputA, setChildBenefitInputA] = useState<string>('0');
 
   // Core Calculator Input States (Scenario B)
-  const [grossInputB, setGrossInputB] = useState<string>('60000');
+  const [grossInputB, setGrossInputB] = useState<string>('33000');
   const [regionB, setRegionB] = useState<'UK' | 'Scotland'>('UK');
-  const [pensionRateB, setPensionRateB] = useState<number>(5);
+  const [pensionRateB, setPensionRateB] = useState<number>(0);
   const [pensionTypeB, setPensionTypeB] = useState<'salarySacrifice' | 'netPay' | 'reliefAtSource'>('salarySacrifice');
   const [pensionOnB, setPensionOnB] = useState<'total' | 'qualifying'>('total');
   const [studentLoanPlansB, setStudentLoanPlansB] = useState<string[]>([]);
@@ -45,6 +49,10 @@ export default function Home() {
   const [blindAllowanceB, setBlindAllowanceB] = useState<boolean>(false);
   const [marriageAllowanceModeB, setMarriageAllowanceModeB] = useState<'receive' | 'transfer' | 'none'>('none');
   const [benefitsInKindB, setBenefitsInKindB] = useState<number>(0);
+  const [bonusInputB, setBonusInputB] = useState<string>('0');
+  const [overtimeInputB, setOvertimeInputB] = useState<string>('0');
+  const [childcareInputB, setChildcareInputB] = useState<string>('0');
+  const [childBenefitInputB, setChildBenefitInputB] = useState<string>('0');
 
   // Comparison controls
   const [compareMode, setCompareMode] = useState<boolean>(false);
@@ -74,6 +82,46 @@ export default function Home() {
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
   }, [grossInputB]);
 
+  const bonusA = useMemo(() => {
+    const parsed = parseFloat(bonusInputA);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [bonusInputA]);
+
+  const overtimeA = useMemo(() => {
+    const parsed = parseFloat(overtimeInputA);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [overtimeInputA]);
+
+  const childcareA = useMemo(() => {
+    const parsed = parseFloat(childcareInputA);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [childcareInputA]);
+
+  const childBenefitA = useMemo(() => {
+    const parsed = parseFloat(childBenefitInputA);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [childBenefitInputA]);
+
+  const bonusB = useMemo(() => {
+    const parsed = parseFloat(bonusInputB);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [bonusInputB]);
+
+  const overtimeB = useMemo(() => {
+    const parsed = parseFloat(overtimeInputB);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [overtimeInputB]);
+
+  const childcareB = useMemo(() => {
+    const parsed = parseFloat(childcareInputB);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [childcareInputB]);
+
+  const childBenefitB = useMemo(() => {
+    const parsed = parseFloat(childBenefitInputB);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  }, [childBenefitInputB]);
+
   // Read targets for currently edited scenario
   const grossInput = editingScenario === 'A' ? grossInputA : grossInputB;
   const region = editingScenario === 'A' ? regionA : regionB;
@@ -86,6 +134,11 @@ export default function Home() {
   const blindAllowance = editingScenario === 'A' ? blindAllowanceA : blindAllowanceB;
   const marriageAllowanceMode = editingScenario === 'A' ? marriageAllowanceModeA : marriageAllowanceModeB;
   const benefitsInKind = editingScenario === 'A' ? benefitsInKindA : benefitsInKindB;
+  
+  const bonusInput = editingScenario === 'A' ? bonusInputA : bonusInputB;
+  const overtimeInput = editingScenario === 'A' ? overtimeInputA : overtimeInputB;
+  const childcareInput = editingScenario === 'A' ? childcareInputA : childcareInputB;
+  const childBenefitInput = editingScenario === 'A' ? childBenefitInputA : childBenefitInputB;
 
   const grossSalary = editingScenario === 'A' ? grossSalaryA : grossSalaryB;
 
@@ -130,6 +183,22 @@ export default function Home() {
     if (editingScenario === 'B') setMarriageAllowanceModeB(val);
     else setMarriageAllowanceModeA(val);
   };
+  const setBonusInput = (val: string) => {
+    if (editingScenario === 'B') setBonusInputB(val);
+    else setBonusInputA(val);
+  };
+  const setOvertimeInput = (val: string) => {
+    if (editingScenario === 'B') setOvertimeInputB(val);
+    else setOvertimeInputA(val);
+  };
+  const setChildcareInput = (val: string) => {
+    if (editingScenario === 'B') setChildcareInputB(val);
+    else setChildcareInputA(val);
+  };
+  const setChildBenefitInput = (val: string) => {
+    if (editingScenario === 'B') setChildBenefitInputB(val);
+    else setChildBenefitInputA(val);
+  };
   const setBenefitsInKind = (val: number) => {
     if (editingScenario === 'B') setBenefitsInKindB(val);
     else setBenefitsInKindA(val);
@@ -149,10 +218,15 @@ export default function Home() {
       blindAllowance: blindAllowanceA,
       marriageAllowanceMode: marriageAllowanceModeA,
       benefitsInKind: benefitsInKindA,
+      bonus: bonusA,
+      overtime: overtimeA,
+      childcareVouchers: childcareA,
+      childBenefit: childBenefitA,
     };
   }, [
     grossSalaryA, regionA, pensionRateA, pensionTypeA, pensionOnA,
-    studentLoanPlansA, taxCodeA, customTaxCodeA, blindAllowanceA, marriageAllowanceModeA, benefitsInKindA
+    studentLoanPlansA, taxCodeA, customTaxCodeA, blindAllowanceA, marriageAllowanceModeA, benefitsInKindA,
+    bonusA, overtimeA, childcareA, childBenefitA
   ]);
 
   const salaryInputsB: SalaryInputs = useMemo(() => {
@@ -168,10 +242,15 @@ export default function Home() {
       blindAllowance: blindAllowanceB,
       marriageAllowanceMode: marriageAllowanceModeB,
       benefitsInKind: benefitsInKindB,
+      bonus: bonusB,
+      overtime: overtimeB,
+      childcareVouchers: childcareB,
+      childBenefit: childBenefitB,
     };
   }, [
     grossSalaryB, regionB, pensionRateB, pensionTypeB, pensionOnB,
-    studentLoanPlansB, taxCodeB, customTaxCodeB, blindAllowanceB, marriageAllowanceModeB, benefitsInKindB
+    studentLoanPlansB, taxCodeB, customTaxCodeB, blindAllowanceB, marriageAllowanceModeB, benefitsInKindB,
+    bonusB, overtimeB, childcareB, childBenefitB
   ]);
 
   // Execute tax calculations dynamically
@@ -274,7 +353,9 @@ export default function Home() {
 
   // Navigation togglers
   const [showInfo, setShowInfo] = useState<boolean>(false);
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState<boolean>(false);
+  const [isBenefitsOpen, setIsBenefitsOpen] = useState<boolean>(false);
+  const [isTaxCodesOpen, setIsTaxCodesOpen] = useState<boolean>(false);
+  const [isStudentLoansOpen, setIsStudentLoansOpen] = useState<boolean>(false);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50" id="netpayflow-root">
@@ -306,6 +387,7 @@ export default function Home() {
             </div>
           </div>
           
+          {compareMode && (
           <div className="flex items-center gap-3 self-start sm:self-center">
             <span className="text-3xs uppercase font-extrabold text-zinc-450 tracking-wider">Apply Flow scenario:</span>
             <div className="inline-flex bg-white rounded-xl p-0.5 border border-zinc-200/80 shadow-2xs">
@@ -331,11 +413,12 @@ export default function Home() {
               </button>
             </div>
           </div>
+          )}
         </div>
 
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
           {currentPage === 'salary-calculator' && (
-            <SalaryCalculator
+              <SalaryCalculator
               grossInput={grossInput}
               setGrossInput={setGrossInput}
               region={region}
@@ -367,11 +450,23 @@ export default function Home() {
               formatGBP={formatGBP}
               showInfo={showInfo}
               setShowInfo={setShowInfo}
-              isAdvancedOpen={isAdvancedOpen}
-              setIsAdvancedOpen={setIsAdvancedOpen}
+              isBenefitsOpen={isBenefitsOpen}
+              setIsBenefitsOpen={setIsBenefitsOpen}
+              isTaxCodesOpen={isTaxCodesOpen}
+              setIsTaxCodesOpen={setIsTaxCodesOpen}
+              isStudentLoansOpen={isStudentLoansOpen}
+              setIsStudentLoansOpen={setIsStudentLoansOpen}
               
               benefitsInKind={benefitsInKind}
               setBenefitsInKind={setBenefitsInKind}
+              bonusInput={bonusInput}
+              setBonusInput={setBonusInput}
+              overtimeInput={overtimeInput}
+              setOvertimeInput={setOvertimeInput}
+              childcareInput={childcareInput}
+              setChildcareInput={setChildcareInput}
+              childBenefitInput={childBenefitInput}
+              setChildBenefitInput={setChildBenefitInput}
               compareMode={compareMode}
               toggleCompareMode={toggleCompareMode}
               editingScenario={editingScenario}

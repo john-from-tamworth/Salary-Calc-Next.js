@@ -175,6 +175,22 @@ export default function BudgetPlanner({
     setExpenses(expenses.filter(item => item.id !== id));
   };
 
+  const downloadBudgetCSV = () => {
+    const data = [
+      ['Expense', 'Amount', 'Category'],
+      ...expenses.map(e => [e.name, e.amount, CATEGORY_META[e.category]?.label || e.category]),
+      ['Total', totalExpensesAmt, ''],
+    ];
+    const csvContent = data.map(e => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'monthly_expenses.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   // Calculations for total expense ledger
   const totalExpensesAmt = useMemo(() => {
     return expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -496,13 +512,21 @@ export default function BudgetPlanner({
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xs font-black text-zinc-900 uppercase tracking-widest">
-                    2. Detail Expense Ledger
+                    2. Monthly Expenses
                   </h3>
                   <p className="text-[10px] text-zinc-405 mt-0.5">Change item cost directly in the box to update instantaneously</p>
                 </div>
-                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-100 text-rose-700 font-mono">
-                  Total Out: {formatGBP(totalExpensesAmt)}/mo
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={downloadBudgetCSV}
+                    className="text-[10px] font-bold text-white bg-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-700"
+                  >
+                    Download CSV
+                  </button>
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-100 text-rose-700 font-mono">
+                    Total Out: {formatGBP(totalExpensesAmt)}/mo
+                  </span>
+                </div>
               </div>
 
               {/* Add form */}

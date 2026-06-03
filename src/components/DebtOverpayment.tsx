@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Coins, HelpCircle, AlertCircle, CreditCard, ShieldAlert, Zap, Calendar, Trophy, Check } from 'lucide-react';
+import { Sparkles, Coins, HelpCircle, AlertCircle, CreditCard, ShieldAlert, Zap, Calendar, Trophy, Check, X } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface DebtOverpaymentProps {
   monthlySurplus: number;
@@ -13,41 +14,31 @@ export default function DebtOverpayment({
   formatGBP
 }: DebtOverpaymentProps) {
   // Inputs & states
+  const [debts, setDebts] = useState<{ id: string; label: string; type: 'mortgage' | 'creditcard' | 'personalloan'; amount: string; rate: string; term: number }[]>([
+    { id: '1', label: 'Example - Car Loan', type: 'personalloan', amount: '20000', rate: '4.5', term: 7 }
+  ]);
+  const [selectedDebtId, setSelectedDebtId] = useState<string>('1');
+  const [isChartVisible, setIsChartVisible] = useState(true);
+  const [isTableVisible, setIsTableVisible] = useState(false);
+
+  const selectedDebt = useMemo(() => debts.find(d => d.id === selectedDebtId) || debts[0], [debts, selectedDebtId]);
+
   const [debtType, setDebtType] = useState<'mortgage' | 'creditcard' | 'personalloan'>('mortgage');
-  const [debtAmount, setDebtAmount] = useState<string>('150000');
-  const [interestRate, setInterestRate] = useState<string>('4.5');
-  const [remainingTerm, setRemainingTerm] = useState<number>(25);
 
   const [overpaySource, setOverpaySource] = useState<'allocated' | 'surplus' | 'custom'>('allocated');
   const [customOverpay, setCustomOverpay] = useState<string>('200');
 
   const parsedDebt = useMemo(() => {
-    const parsed = parseFloat(debtAmount);
+    const parsed = parseFloat(selectedDebt.amount);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [debtAmount]);
+  }, [selectedDebt.amount]);
 
   const parsedRate = useMemo(() => {
-    const parsed = parseFloat(interestRate);
+    const parsed = parseFloat(selectedDebt.rate);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [interestRate]);
+  }, [selectedDebt.rate]);
 
-  // Lock to debt presets to help the user get started
-  const applyPreset = (type: 'mortgage' | 'creditcard' | 'personalloan') => {
-    setDebtType(type);
-    if (type === 'mortgage') {
-      setDebtAmount('150000');
-      setInterestRate('4.5');
-      setRemainingTerm(25);
-    } else if (type === 'creditcard') {
-      setDebtAmount('8000');
-      setInterestRate('19.9');
-      setRemainingTerm(5);
-    } else if (type === 'personalloan') {
-      setDebtAmount('15000');
-      setInterestRate('6.8');
-      setRemainingTerm(5);
-    }
-  };
+  const remainingTerm = selectedDebt.term;
 
   const overpaymentAmount = useMemo(() => {
     if (overpaySource === 'allocated') {
@@ -120,7 +111,7 @@ export default function DebtOverpayment({
     let totalInterestB = 0;
     let monthsB = 0;
     const totalPmtB = standardPmt + overpmt;
-    const yearlyBalances: { year: number; balanceA: number; balanceB: number }[] = [];
+    const yearlyBalances: { year: number; balanceA: number; balanceB: number }[] = [{ year: 0, balanceA: P_initial, balanceB: P_initial }];
 
     while (balanceB > 0.01 && monthsB < maxSafetyMonths) {
       const interest = balanceB * r_monthly;
@@ -168,6 +159,24 @@ export default function DebtOverpayment({
     };
   }, [parsedDebt, parsedRate, standardMonthlyPayment, overpaymentAmount]);
 
+  const downloadDebtCSV = () => {
+    const header = ['Year', 'Standard Balance', 'Overpaid Balance', 'Equity Gained'];
+    const rows = simulation.timelines.map(tl => [
+      tl.year,
+      tl.balanceA.toFixed(2),
+      tl.balanceB.toFixed(2),
+      Math.max(0, tl.balanceA - tl.balanceB).toFixed(2)
+    ]);
+    const csvContent = [header, ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'debt_paydown_comparison.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const yearsSaved = Math.floor(simulation.timeSavedMonths / 12);
   const remainingMonthsSaved = simulation.timeSavedMonths % 12;
 
@@ -185,33 +194,6 @@ export default function DebtOverpayment({
           <p className="text-xs text-zinc-500 mt-1">Simulate adding your budget surplus to your mortgage or credit card payoffs to save interest.</p>
         </div>
 
-        {/* Preset Selector */}
-        <div className="inline-flex rounded-xl bg-zinc-100 p-1 border border-zinc-200 self-start md:self-center">
-          <button
-            onClick={() => applyPreset('mortgage')}
-            className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              debtType === 'mortgage' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-            }`}
-          >
-            Mortgage
-          </button>
-          <button
-            onClick={() => applyPreset('creditcard')}
-            className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              debtType === 'creditcard' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-            }`}
-          >
-            Credit Card
-          </button>
-          <button
-            onClick={() => applyPreset('personalloan')}
-            className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              debtType === 'personalloan' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
-            }`}
-          >
-            Personal Loan
-          </button>
-        </div>
       </div>
 
       {simulation.standardTotalInterest === Infinity && (
@@ -230,10 +212,49 @@ export default function DebtOverpayment({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* INPUT PANEL */}
         <div className="lg:col-span-5 bg-white border border-zinc-250 p-5 rounded-2xl shadow-sm space-y-5">
-          <h3 className="text-xs font-extrabold text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-rose-500 animate-pulse" />
-            Specify Outstanding Debt
+          <h3 className="text-xs font-extrabold text-zinc-900 uppercase tracking-widest flex items-center justify-between">
+            <span className='flex items-center gap-2'>
+              <CreditCard className="w-4 h-4 text-rose-500 animate-pulse" />
+              Outstanding Debt
+            </span>
+            <button 
+              onClick={() => {
+                const newId = (debts.length + 1).toString();
+                setDebts([...debts, { id: newId, label: 'New Debt', type: 'mortgage', amount: '10000', rate: '4.5', term: 25 }]);
+                setSelectedDebtId(newId);
+              }}
+              className="text-xs font-bold text-rose-600 hover:text-rose-700"
+            >
+              + Add Debt
+            </button>
           </h3>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {debts.map(d => (
+              <div key={d.id} className="relative group shrink-0">
+                <button 
+                  onClick={() => setSelectedDebtId(d.id)}
+                  className={`py-1 px-3 pr-6 rounded-full text-xs font-bold ${selectedDebtId === d.id ? 'bg-rose-600 text-white' : 'bg-zinc-100 text-zinc-600'}`}
+                >
+                  {d.label}
+                </button>
+                {debts.length > 1 && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newDebts = debts.filter(debt => debt.id !== d.id);
+                      setDebts(newDebts);
+                      if (selectedDebtId === d.id) {
+                        setSelectedDebtId(newDebts[0].id);
+                      }
+                    }}
+                    className="absolute top-0.5 right-1 text-zinc-400 hover:text-rose-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* Debt Amount */}
           <div className="space-y-2">
@@ -243,8 +264,8 @@ export default function DebtOverpayment({
               <input
                 type="number"
                 min="0"
-                value={debtAmount}
-                onChange={e => setDebtAmount(e.target.value)}
+                value={selectedDebt.amount}
+                onChange={e => setDebts(debts.map(d => d.id === selectedDebtId ? {...d, amount: e.target.value} : d))}
                 className="w-full text-xs pl-8 pr-4.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-zinc-400 focus:bg-white focus:outline-none font-bold animate-pulse-once"
               />
             </div>
@@ -260,8 +281,8 @@ export default function DebtOverpayment({
                   type="number"
                   step="0.05"
                   min="0"
-                  value={interestRate}
-                  onChange={e => setInterestRate(e.target.value)}
+                  value={selectedDebt.rate}
+                  onChange={e => setDebts(debts.map(d => d.id === selectedDebtId ? {...d, rate: e.target.value} : d))}
                   className="w-full text-xs pl-3.5 pr-8 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-zinc-400 focus:bg-white focus:outline-none font-bold"
                 />
               </div>
@@ -273,8 +294,11 @@ export default function DebtOverpayment({
                 type="number"
                 min="1"
                 max="40"
-                value={remainingTerm}
-                onChange={e => setRemainingTerm(parseInt(e.target.value, 10))}
+                value={selectedDebt.term}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10);
+                  setDebts(debts.map(d => d.id === selectedDebtId ? {...d, term: isNaN(val) ? 0 : val} : d));
+                }}
                 className="w-full text-xs px-3.5 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-zinc-400 focus:bg-white focus:outline-none font-bold"
               />
             </div>
@@ -448,46 +472,91 @@ export default function DebtOverpayment({
           )}
 
           {/* Historical Amortization Table snippet */}
-          <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-sm space-y-4">
-            <h4 className="text-xs font-extrabold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-emerald-500" />
-              Paydown Balance Comparison
-            </h4>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-zinc-600 border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-100 text-zinc-400">
-                    <th className="py-2.5 font-bold uppercase text-[9px]">Year</th>
-                    <th className="py-2.5 font-bold uppercase text-[9px] text-right">Standard Balance</th>
-                    <th className="py-2.5 font-bold uppercase text-[9px] text-right">Overpaid Balance</th>
-                    <th className="py-2.5 font-bold uppercase text-[9px] text-right text-emerald-600">Equity Gained</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-50 font-medium">
-                  {simulation.timelines.filter((_, idx) => idx % 4 === 0 || idx === simulation.timelines.length - 1).map(tl => {
-                    const equity = Math.max(0, tl.balanceA - tl.balanceB);
-                    return (
-                      <tr key={tl.year} className="hover:bg-zinc-50/50">
-                        <td className="py-2.5 text-zinc-900 font-bold">Year {tl.year}</td>
-                        <td className="py-2.5 text-right">{formatGBP(tl.balanceA)}</td>
-                        <td className="py-2.5 text-right font-bold text-zinc-900">
-                          {tl.balanceB <= 0 ? (
-                            <span className="text-emerald-600 font-black">PAID OFF 🎉</span>
-                          ) : (
-                            formatGBP(tl.balanceB)
-                          )}
-                        </td>
-                        <td className="py-2.5 text-right font-bold text-emerald-600">
-                          +{formatGBP(equity)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+           <div className="bg-white border border-zinc-200 p-5 rounded-2xl shadow-sm space-y-4">
+             <div className="flex justify-between items-center pb-2 border-b border-zinc-150">
+                <h4 className="text-xs font-extrabold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-emerald-500" />
+                  Paydown Balance Comparison
+                </h4>
+                <div className="flex gap-2 items-center">
+                  <button
+                      onClick={downloadDebtCSV}
+                      className="text-[10px] font-bold text-white bg-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-700"
+                  >
+                    Download CSV
+                  </button>
+                  <button onClick={() => { setIsChartVisible(!isChartVisible); setIsTableVisible(false); }} className={`px-2 py-1 rounded text-[10px] font-bold ${isChartVisible ? 'bg-emerald-600 text-white' : 'bg-zinc-100'}`}>Graph</button>
+                  <button onClick={() => { setIsTableVisible(!isTableVisible); setIsChartVisible(false); }} className={`px-2 py-1 rounded text-[10px] font-bold ${isTableVisible ? 'bg-emerald-600 text-white' : 'bg-zinc-100'}`}>Table</button>
+                </div>
             </div>
-          </div>
+
+            {isChartVisible && (
+              <div className="h-[250px] w-full bg-zinc-50 rounded-lg p-2">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <LineChart key={JSON.stringify(simulation.timelines)} data={simulation.timelines} margin={{ top: 5, right: 30, bottom: 5, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                      <XAxis dataKey="year" fontSize={10} label={{ value: 'Year', position: 'insideBottom', offset: -5, fontSize: 10 }} />
+                      <YAxis fontSize={10} tickFormatter={(val) => formatGBP(val)} label={{ value: 'Balance (£)', angle: -90, position: 'insideLeft', fontSize: 10, offset: 0 }} />
+                      <Tooltip formatter={(val: number) => formatGBP(val)} contentStyle={{ fontSize: 10, padding: 4 }} />
+                      <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} />
+                      <Line type="monotone" dataKey="balanceA" name="Standard" stroke="#71717a" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="balanceB" name="Overpaid" stroke="#10b981" strokeWidth={2} dot={false} />
+                    </LineChart>
+                 </ResponsiveContainer>
+              </div>
+            )}
+
+            {isTableVisible && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-zinc-600 border-collapse">
+                  <thead>
+                    <tr className="border-b border-zinc-100 text-zinc-400">
+                      <th className="py-2.5 font-bold uppercase text-[9px]">Year</th>
+                      <th className="py-2.5 font-bold uppercase text-[9px] text-right">Standard Balance</th>
+                      <th className="py-2.5 font-bold uppercase text-[9px] text-right">Overpaid Balance</th>
+                      <th className="py-2.5 font-bold uppercase text-[9px] text-right text-emerald-600">Equity Gained</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-50 font-medium">
+                    {simulation.timelines.filter((_, idx) => idx % 4 === 0 || idx === simulation.timelines.length - 1).map(tl => {
+                      const equity = Math.max(0, tl.balanceA - tl.balanceB);
+                      return (
+                        <tr key={tl.year} className="hover:bg-zinc-50/50">
+                          <td className="py-2.5 text-zinc-900 font-bold">Year {tl.year}</td>
+                          <td className="py-2.5 text-right">{formatGBP(tl.balanceA)}</td>
+                          <td className="py-2.5 text-right font-bold text-zinc-900">
+                            {tl.balanceB <= 0 ? (
+                              <span className="text-emerald-600 font-black">PAID OFF 🎉</span>
+                            ) : (
+                              formatGBP(tl.balanceB)
+                            )}
+                          </td>
+                          <td className="py-2.5 text-right font-bold text-emerald-600">
+                            +{formatGBP(equity)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+           </div>
+
+            {/* Summary Box */}
+            <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl border-l-4 border-l-emerald-600">
+              <h4 className="text-xs font-extrabold text-emerald-900 uppercase tracking-wider mb-2">Simulation Summary</h4>
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <p className="text-[10px] text-emerald-700 font-bold uppercase">Interest Saved</p>
+                    <p className="text-xl font-black text-emerald-950">{formatGBP(simulation.interestSaved)}</p>
+                 </div>
+                 <div>
+                    <p className="text-[10px] text-emerald-700 font-bold uppercase">Time Saved</p>
+                    <p className="text-xl font-black text-emerald-950">{yearsSaved > 0 ? `${yearsSaved}y ` : ''}{remainingMonthsSaved}m</p>
+                 </div>
+              </div>
+            </div>
         </div>
       </div>
     </div>

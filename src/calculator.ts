@@ -56,6 +56,10 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
     customTaxCode,
     blindAllowance,
     marriageAllowanceMode,
+    bonus = 0,
+    overtime = 0,
+    childcareVouchers = 0,
+    childBenefit = 0,
   } = inputs;
 
   const benefitsInKind = inputs.benefitsInKind || 0;
@@ -99,27 +103,30 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
 
   if (pensionOn === 'qualifying') {
     // Qualifying earnings limit (£6,240 to £50,270)
-    pensionableSalary = Math.max(0, Math.min(50270, grossSalary) - 6240);
+    pensionableSalary = Math.max(0, Math.min(50270, grossSalary + bonus + overtime) - 6240);
   }
 
   pensionContribution = pensionableSalary * (pensionRate / 100);
 
   // 3. Determine adjustments for taxable income, NI, and student loans
-  let grossSalaryForTax = grossSalary;
-  let salaryForNI = grossSalary;
-  let salaryForStudentLoan = grossSalary;
+  const totalGross = grossSalary + bonus + overtime;
+  const basicGrossForTaxAndNI = Math.max(0, totalGross - childcareVouchers);
+
+  let grossSalaryForTax = basicGrossForTaxAndNI;
+  let salaryForNI = basicGrossForTaxAndNI;
+  let salaryForStudentLoan = basicGrossForTaxAndNI;
 
   if (pensionType === 'salarySacrifice') {
-    grossSalaryForTax -= pensionContribution;
-    salaryForNI -= pensionContribution;
-    salaryForStudentLoan -= pensionContribution;
+    grossSalaryForTax = Math.max(0, grossSalaryForTax - pensionContribution);
+    salaryForNI = Math.max(0, salaryForNI - pensionContribution);
+    salaryForStudentLoan = Math.max(0, salaryForStudentLoan - pensionContribution);
   } else if (pensionType === 'netPay') {
-    grossSalaryForTax -= pensionContribution;
+    grossSalaryForTax = Math.max(0, grossSalaryForTax - pensionContribution);
     // NI and student loans are calculated on gross pay before net pay pension
   } else if (pensionType === 'reliefAtSource') {
     // Income tax: standard rate relief given on payment, higher rates claimed via self-assessment.
     // Adjusted net income for personal allowance tapering is reduced.
-    grossSalaryForTax -= pensionContribution; 
+    grossSalaryForTax = Math.max(0, grossSalaryForTax - pensionContribution); 
   }
 
   // 4. Personal Allowance Tapering (Adjusted Net Income)
@@ -218,19 +225,29 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
   // pension deduction is from gross/net depending on setup:
   // Salary sacrifice: already deducted from gross, so we don't subtract it again.
   // Net pay / Relief at Source: needs physically subtracting here from final net.
-  let netFromGross = grossSalary - taxDue - niDue - studentLoanRepayment;
+  let netFromGross = totalGross - taxDue - niDue - studentLoanRepayment;
   if (pensionType !== 'salarySacrifice') {
     netFromGross -= pensionContribution;
   } else {
-    // If salary sacrifice, the pension is already paid from gross, so net is simply gross (sacrificed) - tax/ni/loans.
-    netFromGross -= pensionContribution; // wait, if grossSalary is original gross, then we sacrificed pension, so net is original gross - pension - tax - ni - student loans!
+    netFromGross -= pensionContribution;
   }
 
-  const takeHome = Math.max(0, netFromGross);
-  const effectiveTaxRate = grossSalary > 0 ? ((grossSalary - takeHome) / grossSalary) * 100 : 0;
+  // Childcare vouchers reduce cash take home because they are sacrificed for vouchers
+  netFromGross -= childcareVouchers;
+
+  // HICBC Charge
+  let hicbcCharge = 0;
+  if (childBenefit > 0 && adjustedNetIncome > 60000) {
+    const fraction = Math.min(1, Math.max(0, (adjustedNetIncome - 60000) / 20000));
+    hicbcCharge = childBenefit * fraction;
+  }
+
+  const takeHome = Math.max(0, netFromGross + childBenefit - hicbcCharge);
+  const grossBasisForRate = totalGross + childBenefit;
+  const effectiveTaxRate = grossBasisForRate > 0 ? ((grossBasisForRate - takeHome) / grossBasisForRate) * 100 : 0;
 
   return {
-    gross: grossSalary,
+    gross: totalGross,
     pensionContribution,
     personalAllowance: baseAllowance,
     adjustedAllowance,
@@ -240,6 +257,11 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
     studentLoanRepayment,
     takeHome,
     effectiveTaxRate,
+    bonus,
+    overtime,
+    childcareVouchersDeduction: childcareVouchers,
+    childBenefitReceived: childBenefit,
+    hicbcCharge,
   };
 }
 

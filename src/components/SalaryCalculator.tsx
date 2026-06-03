@@ -56,12 +56,24 @@ interface SalaryCalculatorProps {
 
   showInfo: boolean;
   setShowInfo: (show: boolean) => void;
-  isAdvancedOpen: boolean;
-  setIsAdvancedOpen: (open: boolean) => void;
+  isBenefitsOpen: boolean;
+  setIsBenefitsOpen: (open: boolean) => void;
+  isTaxCodesOpen: boolean;
+  setIsTaxCodesOpen: (open: boolean) => void;
+  isStudentLoansOpen: boolean;
+  setIsStudentLoansOpen: (open: boolean) => void;
 
   // New comparison and benefits in kind props
   benefitsInKind?: number;
   setBenefitsInKind?: (val: number) => void;
+  bonusInput?: string;
+  setBonusInput?: (val: string) => void;
+  overtimeInput?: string;
+  setOvertimeInput?: (val: string) => void;
+  childcareInput?: string;
+  setChildcareInput?: (val: string) => void;
+  childBenefitInput?: string;
+  setChildBenefitInput?: (val: string) => void;
   compareMode?: boolean;
   toggleCompareMode?: () => void;
   editingScenario?: 'A' | 'B';
@@ -115,11 +127,23 @@ export default function SalaryCalculator({
 
   showInfo,
   setShowInfo,
-  isAdvancedOpen,
-  setIsAdvancedOpen,
+  isBenefitsOpen,
+  setIsBenefitsOpen,
+  isTaxCodesOpen,
+  setIsTaxCodesOpen,
+  isStudentLoansOpen,
+  setIsStudentLoansOpen,
 
   benefitsInKind = 0,
   setBenefitsInKind = () => {},
+  bonusInput = '0',
+  setBonusInput = () => {},
+  overtimeInput = '0',
+  setOvertimeInput = () => {},
+  childcareInput = '0',
+  setChildcareInput = () => {},
+  childBenefitInput = '0',
+  setChildBenefitInput = () => {},
   compareMode = false,
   toggleCompareMode = () => {},
   editingScenario = 'A',
@@ -302,7 +326,11 @@ export default function SalaryCalculator({
           <h2 className="text-xl font-black text-zinc-950 mt-1.5 flex items-center gap-2">
             NetPayFlow Salary Workspace
           </h2>
-          <p className="text-xs text-zinc-500 mt-1">Simulate pay rises, student loans, pension types, and detailed deductions in real time.</p>
+          <p className="text-sm text-zinc-600 mt-2 bg-zinc-100 p-3 rounded-lg">
+            In NetPayFlow, your Net Pay feeds your budget planner. Your budget planner uncovers a surplus, and your surplus accelerates your savings compounds or pays off your mortgage decades early. 
+            <br/><br/>
+            Toggle <strong className='text-zinc-900'>Compare Salary A & B</strong> to analyze two different salary scenarios. Once activated, the "Flow scenario" allows you to choose which resulting Net Pay feeds your planner.
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
@@ -316,7 +344,7 @@ export default function SalaryCalculator({
             id="btn-salary-info-toggle"
           >
             <HelpCircle className="w-4 h-4 text-emerald-500" />
-            <span>Methodology</span>
+            <span>Data Sources and Methodology</span>
           </button>
         </div>
       </div>
@@ -616,87 +644,133 @@ export default function SalaryCalculator({
 
           {/* 4. Student Loan Selector */}
           <div className="space-y-2 pt-4 border-t border-zinc-100">
-            <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4 text-zinc-550" />
-              Student Loans Setup
-            </label>
+            <button
+              type="button"
+              onClick={() => setIsStudentLoansOpen(!isStudentLoansOpen)}
+              className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
+            >
+              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-zinc-550" />
+                Student Loans Setup
+              </label>
+              {isStudentLoansOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
 
-            <div className="flex flex-col gap-1.5">
-              {[
-                { value: 'plan1', label: 'Plan 1', range: 'Above £24,990' },
-                { value: 'plan2', label: 'Plan 2', range: 'Above £27,295' },
-                { value: 'plan4', label: 'Plan 4', range: 'Above £31,395 (Scottish standard)' },
-                { value: 'plan5', label: 'Plan 5', range: 'Above £25,000' },
-                { value: 'postgrad', label: 'Postgraduate', range: 'Above £21,000 (6%)' }
-              ].map(plan => {
-                const isActive = studentLoanPlans.includes(plan.value);
-                return (
-                  <button
-                    key={plan.value}
-                    type="button"
-                    onClick={() => toggleStudentLoan(plan.value)}
-                    className={`cursor-pointer px-3.5 py-2 rounded-xl border flex items-center justify-between text-left transition-all ${
-                      isActive
-                        ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm'
-                        : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50'
-                    }`}
-                  >
-                    <div>
-                      <span className="text-[11px] font-bold block">{plan.label}</span>
-                      <span className={`text-[9px] ${isActive ? 'text-zinc-300' : 'text-zinc-400'}`}>
-                        {plan.range}
-                      </span>
-                    </div>
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                      isActive ? 'bg-white text-zinc-900 border-white' : 'border-zinc-300'
-                    }`}>
-                      {isActive && <Check className="w-2.5 h-2.5 stroke-[4px]" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            {isStudentLoansOpen && (
+                <div className="flex flex-col gap-1.5">
+                {[
+                  { value: 'plan1', label: 'Plan 1', range: 'Above £24,990' },
+                  { value: 'plan2', label: 'Plan 2', range: 'Above £27,295' },
+                  { value: 'plan4', label: 'Plan 4', range: 'Above £31,395 (Scottish standard)' },
+                  { value: 'plan5', label: 'Plan 5', range: 'Above £25,000' },
+                  { value: 'postgrad', label: 'Postgraduate', range: 'Above £21,000 (6%)' }
+                ].map(plan => {
+                  const isActive = studentLoanPlans.includes(plan.value);
+                  return (
+                    <button
+                      key={plan.value}
+                      type="button"
+                      onClick={() => toggleStudentLoan(plan.value)}
+                      className={`cursor-pointer px-3.5 py-2 rounded-xl border flex items-center justify-between text-left transition-all ${
+                        isActive
+                          ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm'
+                          : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-[11px] font-bold block">{plan.label}</span>
+                        <span className={`text-[9px] ${isActive ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                          {plan.range}
+                        </span>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        isActive ? 'bg-white text-zinc-900 border-white' : 'border-zinc-300'
+                      }`}>
+                        {isActive && <Check className="w-2.5 h-2.5 stroke-[4px]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* 5. Advanced Tax Configurations & Benefits in Kind (Collapsible) */}
+          {/* Benefits Section */}
           <div className="border-t border-zinc-100 pt-3">
             <button
               type="button"
-              onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+              onClick={() => setIsBenefitsOpen(!isBenefitsOpen)}
               className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
             >
-              <span className="text-xs font-extrabold uppercase tracking-wider">Advanced Tax Codes & benefits</span>
-              {isAdvancedOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span className="text-xs font-extrabold uppercase tracking-wider">Benefits & Income Adjustments</span>
+              {isBenefitsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
 
-            {isAdvancedOpen && (
+            {isBenefitsOpen && (
               <div className="space-y-4 pt-3 transition-all duration-350">
-                {/* Benefits in Kind Option - Added as requested */}
-                <div className="space-y-2 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
-                  <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="benefits-in-kind-input">
-                    <span>Benefits in Kind (P11D value)</span>
-                    <span className="text-[9px] text-zinc-400 font-mono">Company car / Medical</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">£</span>
-                    <input
-                      id="benefits-in-kind-input"
-                      type="number"
-                      min="0"
-                      max="1000000"
-                      step="100"
-                      value={benefitsInKind || ''}
-                      onChange={e => setBenefitsInKind(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="w-full text-xs pl-7 pr-12 py-2 bg-white border border-zinc-200 rounded-xl font-bold focus:border-zinc-400 focus:outline-none"
-                      placeholder="e.g. 1200"
-                    />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-zinc-400">/ yr</span>
+                <div className="space-y-4 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="bonus-input">
+                       <span>Bonus</span>
+                     </label>
+                     <input id="bonus-input" type="number" value={bonusInput} onChange={e => setBonusInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
                   </div>
-                  <span className="text-[9px] text-zinc-400 block mt-0.5 leading-tight">
-                    Increases taxable income for Income Tax, but does not affect employee National Insurance or base Pension payload. Reduces monthly take-home via extra tax paid.
-                  </span>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="overtime-input">
+                       <span>Overtime</span>
+                     </label>
+                     <input id="overtime-input" type="number" value={overtimeInput} onChange={e => setOvertimeInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="childcare-input">
+                       <span>Childcare Vouchers</span>
+                     </label>
+                     <input id="childcare-input" type="number" value={childcareInput} onChange={e => setChildcareInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="childbenefit-input">
+                       <span>Child Benefit Received</span>
+                     </label>
+                     <input id="childbenefit-input" type="number" value={childBenefitInput} onChange={e => setChildBenefitInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="benefits-in-kind-input">
+                      <span>Benefits in Kind (P11D value)</span>
+                      <span className="text-[9px] text-zinc-400 font-mono">Company car / Medical</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">£</span>
+                      <input
+                        id="benefits-in-kind-input"
+                        type="number"
+                        min="0"
+                        max="1000000"
+                        step="100"
+                        value={benefitsInKind || ''}
+                        onChange={e => setBenefitsInKind(Math.max(0, parseFloat(e.target.value) || 0))}
+                        className="w-full text-xs pl-7 pr-12 py-2 bg-white border border-zinc-200 rounded-xl font-bold focus:border-zinc-400 focus:outline-none"
+                        placeholder="e.g. 1200"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-zinc-400">/ yr</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="border-t border-zinc-100 pt-3">
+            <button
+              type="button"
+              onClick={() => setIsTaxCodesOpen(!isTaxCodesOpen)}
+              className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
+            >
+              <span className="text-xs font-extrabold uppercase tracking-wider">Advanced Tax Codes</span>
+              {isTaxCodesOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
 
+            {isTaxCodesOpen && (
+              <div className="space-y-4 pt-3 transition-all duration-350">
                 {/* Custom Tax Code Toggle & Input */}
                 <div className="space-y-2 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
                   <div className="flex items-center justify-between">

@@ -31,6 +31,40 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
     }).format(divided);
   };
 
+  const downloadSalaryCSV = () => {
+    let csvContent = "";
+    if (compareMode && breakdownB) {
+      const header = ['Category', 'Salary A', 'Salary B', 'Difference'];
+      const rows = [
+        ['Gross Salary', breakdown.gross, breakdownB.gross, breakdownB.gross - breakdown.gross],
+        ['Tax Due', breakdown.taxDue, breakdownB.taxDue, breakdownB.taxDue - breakdown.taxDue],
+        ['NI Due', breakdown.niDue, breakdownB.niDue, breakdownB.niDue - breakdown.niDue],
+        ['Student Loan', breakdown.studentLoanRepayment, breakdownB.studentLoanRepayment, breakdownB.studentLoanRepayment - breakdown.studentLoanRepayment],
+        ['Pension', breakdown.pensionContribution, breakdownB.pensionContribution, breakdownB.pensionContribution - breakdown.pensionContribution],
+        ['Take Home', breakdown.takeHome, breakdownB.takeHome, breakdownB.takeHome - breakdown.takeHome],
+      ];
+      csvContent = [header, ...rows.map(e => e.join(','))].join('\n');
+    } else {
+      const header = ['Category', 'Amount'];
+      const rows = [
+        ['Gross Salary', breakdown.gross],
+        ['Tax Due', breakdown.taxDue],
+        ['NI Due', breakdown.niDue],
+        ['Student Loan', breakdown.studentLoanRepayment],
+        ['Pension', breakdown.pensionContribution],
+        ['Take Home', breakdown.takeHome],
+      ];
+      csvContent = [header, ...rows.map(e => e.join(','))].join('\n');
+    }
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = compareMode ? 'salary_comparison.csv' : 'salary_breakdown.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const rows = [
     { label: 'Gross Salary', key: 'gross', val: breakdown.gross, valB: breakdownB?.gross ?? 0, isHeader: false, style: 'text-zinc-900 font-semibold' },
     { label: 'Pension Contribution', key: 'pension', val: breakdown.pensionContribution, valB: breakdownB?.pensionContribution ?? 0, isHeader: false, style: 'text-cyan-650 font-medium' },
@@ -52,6 +86,13 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
             </h3>
             <p className="text-xs text-zinc-500 mt-1">Side-by-side break-down of salary differences</p>
           </div>
+          
+          <button
+            onClick={downloadSalaryCSV}
+            className="text-xs font-bold text-white bg-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-700"
+          >
+            Download CSV
+          </button>
 
           <div className="inline-flex rounded-xl bg-zinc-100 p-1 border border-zinc-200 self-start sm:self-center">
             {['yearly', 'monthly', 'weekly', 'daily'].map((period) => (
@@ -191,6 +232,13 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
           <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Salary Breakdown</h3>
           <p className="text-xs text-zinc-500 mt-0.5">Comparative pay splits across standard timelines</p>
         </div>
+
+        <button
+          onClick={downloadSalaryCSV}
+          className="text-xs font-bold text-white bg-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-700"
+        >
+          Download CSV
+        </button>
 
         {/* Daily basis toggling */}
         <div className="inline-flex rounded-xl bg-zinc-100 p-1 border border-zinc-250 self-start sm:self-center">

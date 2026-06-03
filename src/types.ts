@@ -10,6 +10,10 @@ export interface SalaryInputs {
   blindAllowance: boolean;
   marriageAllowanceMode: 'receive' | 'transfer' | 'none';
   benefitsInKind?: number;
+  bonus?: number;
+  overtime?: number;
+  childcareVouchers?: number;
+  childBenefit?: number;
 }
 
 export interface TaxBand {
@@ -29,6 +33,11 @@ export interface SalaryBreakdown {
   studentLoanRepayment: number;
   takeHome: number;
   effectiveTaxRate: number;
+  bonus?: number;
+  overtime?: number;
+  childcareVouchersDeduction?: number;
+  childBenefitReceived?: number;
+  hicbcCharge?: number;
 }
 
 export interface ExpenseItem {
