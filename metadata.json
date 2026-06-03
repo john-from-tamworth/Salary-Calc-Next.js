@@ -1,0 +1,6 @@
+{
+  "name": "NetPayFlow",
+  "description": "An all-in-one personal finance workflow suite featuring a UK/Scotland Salary Calculator, Budget Planner, Savings Compounder, Debt Overpayment Simulator, and Financial Insights Hub as a cohesive data flow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
