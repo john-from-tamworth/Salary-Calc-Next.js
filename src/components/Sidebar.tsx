@@ -38,6 +38,7 @@ export default function Sidebar({
   ];
 
   const handleNav = (id: string) => {
+    console.log("Sidebar handleNav received ID:", id);
     setCurrentPage(id);
     setMobileOpen(false);
   };

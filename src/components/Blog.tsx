@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 import { BookOpen, ArrowRight, Zap, Target, Sliders, PlayCircle, Star, PiggyBank, CreditCard, Sparkles, ChevronLeft, Clock, Briefcase } from 'lucide-react';
+import BlogEmbeddableBreakdown from './BlogEmbeddableBreakdown';
+import BlogEmbeddableInputs from './BlogEmbeddableInputs';
+import BlogEmbeddableComparator from './BlogEmbeddableComparator';
+import BlogEmbeddableBudgetPlanner from './BlogEmbeddableBudgetPlanner';
+import BlogEmbeddableSavingsCompounder from './BlogEmbeddableSavingsCompounder';
+import BlogEmbeddableDebtOverpayment from './BlogEmbeddableDebtOverpayment';
+import BlogEmbeddableProRataSlider from './BlogEmbeddableProRataSlider';
 
 interface BlogProps {
   // Callbacks to preset values in other pages
@@ -14,6 +21,8 @@ interface BlogProps {
   setIsProRata: (val: boolean) => void;
   setProRataDays: (val: number) => void;
   setCurrentPage: (page: string) => void;
+  viewingArticleId: string | null;
+  setViewingArticleId: (id: string | null) => void;
 }
 
 export default function Blog({
@@ -26,12 +35,108 @@ export default function Blog({
   setStudentLoanPlans,
   setIsProRata,
   setProRataDays,
-  setCurrentPage
+  setCurrentPage,
+  viewingArticleId,
+  setViewingArticleId
 }: BlogProps) {
 
-  const [viewingArticleId, setViewingArticleId] = useState<string | null>(null);
-
   const articles = [
+    {
+      id: 'how-to-use-netpayflow',
+      title: 'Master Your Money: The Step-by-Step Guide to Using NetPayFlow',
+      category: 'Guides',
+      readTime: '6 min read',
+      summary: 'Ready to take complete control of your finances? Discover how NetPayFlow connects your salary, budget, savings, and debt into a single, seamless financial pipeline.',
+      difficulty: 'Beginner',
+      iconUrl: BookOpen,
+      bgGradient: 'from-violet-50 to-purple-50/20 border-violet-200/60',
+      actionText: 'Start Your Financial Flow',
+      onClickPreset: () => {
+        setGrossInputA('40000');
+        setCurrentPage('salary-calculator');
+      },
+      bullets: [
+        'Most financial tools force you to copy and paste data across different spreadsheets. NetPayFlow connects everything into a single, automated pipeline.',
+        'Watch your calculations flow seamlessly from your gross salary down to your monthly living costs, and straight into your long-term wealth building engines.',
+        'Easily model complex scenarios like part-time pro rata schedules, hourly wage tracking, and side-by-side A/B salary comparisons.'
+      ],
+      fullContent: (
+        <div className="space-y-6 text-zinc-700 leading-relaxed text-sm">
+          <p>
+            Managing your money shouldn’t feel like doing homework. Traditional budgeting tools usually force you to calculate your tax on one website, map your expenses on another, and figure out your savings compound interest on a third. 
+          </p>
+          <p>
+            We built <strong>NetPayFlow</strong> because money doesn't live in isolated compartments—it flows. When your income changes, your budget changes, and your financial goals shift. Our platform maps your entire financial pipeline in real time. Here is the step-by-step breakdown of how to unleash the full power of the app.
+          </p>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Step 1: Map Your Inflow (The Salary Calculator)</h3>
+          
+          <div className="flex flex-col md:flex-row gap-6 mt-4">
+            <div className="md:w-1/2 space-y-4">
+              <p>
+                Your journey begins at the source. The Salary Calculator strips away the guesswork of UK and Scottish tax logic to establish your absolute baseline spending power.
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><strong>Input Your Base:</strong> Enter your gross annual salary or switch modes to calculate by <strong>hourly pay</strong> rates.</li>
+                <li><strong>Layer on Extras:</strong> Add your bonuses (using our smart £ flat-rate or % percentage toggles), and input non-taxable income like Child Benefit. Taxable items alter your tax brackets, while non-taxable items safely bypass the tax engine.</li>
+                <li><strong>Navigate Adjustments:</strong> Test a part-time transition using our <strong>Pro Rata slider</strong> to see how dropping a working day actually impacts your take-home pay. </li>
+                <li><strong>Beat the Thresholds:</strong> If you approach high-tax bottlenecks (like the infamous £100k tax trap), look out for our dynamic on-screen warnings. Hit the "Safe Pension Contribution" button to instantly apply a tax-saving salary sacrifice.</li>
+              </ul>
+            </div>
+            <div className="md:w-1/2">
+              <BlogEmbeddableInputs />
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <BlogEmbeddableBreakdown grossSalary={40000} />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Step 2: Compare Realities (The Scenario A/B Toggle)</h3>
+          <p>
+            Weighing up a new job offer or preparing for an internal review? Flip the <strong>Compare Salary</strong> switch to open up two independent tracks: Scenario A and Scenario B. You can customize different salaries, distinct bonus structures, or varied pension matches side-by-side. Once you find your strongest financial reality, hit the "Flow Scenario" button to stream that specific Net Pay forward into the rest of the app.
+          </p>
+
+          <div className="my-6">
+            <BlogEmbeddableComparator grossSalaryA={50000} grossSalaryB={60000} />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Step 3: Direct the Stream (The Budget Planner)</h3>
+          <p>
+            Once your optimized Net Pay is locked in, it automatically <em>flows</em> straight down into your Budget Planner. No manual copying required. 
+          </p>
+          <p>
+            As you log your rent, mortgage, utilities, and lifestyle expenses, the app subtracts them from your streaming income to reveal the holy grail of personal finance: your <strong>Surplus Cash</strong>. To keep you flexible, use the budget target slider to lock in a comfortable "Target" savings amount while keeping the rest safely liquid for day-to-day life.
+          </p>
+
+          <div className="my-6">
+            <BlogEmbeddableBudgetPlanner />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Step 4: Supercharge Your Future (Savings & Debt Overpayment)</h3>
+          <p>
+            Now watch your money work for you. Your surplus and target figures flow directly into our two financial engines:
+          </p>
+          <ul className="list-disc pl-5 space-y-2 mt-2">
+            <li><strong>The Savings Compound:</strong> Route your surplus into a simulation of high-interest savings accounts, ISAs, or global index funds. Set your interest rates and goals to see exactly how fast your money grows over time.</li>
+            <li><strong>Debt Overpayment:</strong> Alternatively, stream that surplus toward credit cards or your mortgage. You will see instantly how making consistent extra payments can crush your liabilities and save you thousands in interest, clearing your debts decades early.</li>
+          </ul>
+
+          <div className="my-10 space-y-10">
+            <BlogEmbeddableSavingsCompounder />
+            <BlogEmbeddableDebtOverpayment />
+          </div>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">The Closed-Loop Advantage</h3>
+          <p>
+            The real magic of NetPayFlow is that it is a closed loop. If you want to see how a £200 monthly pension increase affects your mortgage payoff date ten years from now, you don't need to rebuild a spreadsheet. Simply scroll back up to Step 1, tweak the slider, and watch the ripple effect stream instantly through your entire budget, surplus, and savings goals. 
+          </p>
+          <p>
+            Ready to see it in action? Hit the simulation button above to jump right into the calculator and start guiding your financial flow!
+          </p>
+        </div>
+      )
+    },
     {
       id: 'tax-trap',
       title: 'Demystifying the UK £100k "Tax Trap": How to Beat the 60% Marginal Rate',
@@ -58,6 +163,7 @@ export default function Blog({
           </p>
 
           <h3 className="text-lg font-semibold text-zinc-900 mt-6">How the 60% Tax Trap Actually Works</h3>
+          <BlogEmbeddableBreakdown grossSalary={115000} />
           <p>
             Let’s break down exactly what is happening behind the scenes. Everyone in the UK generally gets a Personal Allowance—the first £12,570 you earn completely tax-free. However, the moment your income crosses the £100,000 threshold, HMRC starts taking that allowance back.
           </p>
@@ -146,9 +252,31 @@ export default function Blog({
       ],
       fullContent: (
         <div className="space-y-6 text-zinc-700 leading-relaxed text-sm">
-          <p>Debt overpayment math is remarkably powerful. Because mortgage interest compounds daily on your remaining balance, reducing that balance early has a disproportionately positive effect on the lifetime cost of your debt.</p>
-          <p>By making small, consistent overpayments—even just £100 or £200 a month—you aren't just shortening your mortgage term. You are effectively investing in a guaranteed, tax-free 'return' equal to your mortgage interest rate, which is often far superior to what you might earn in a standard savings account.</p>
-          <p>Use our <strong>Debt Overpayment tool</strong> to visualize this. Input your remaining balance, interest rate, and term. Try adding a monthly overpayment amount to see, in real-time, how many years you can knock off your mortgage and how much you save in total interest payments.</p>
+          <p>
+            Debt overpayment math is remarkably powerful. Because mortgage interest compounds daily on your remaining balance, reducing that balance early has a disproportionately positive effect on the lifetime cost of your debt. By making small, consistent overpayments—even just £100 or £200 a month—you aren't just shortening your mortgage term; you are effectively investing in a guaranteed, tax-free 'return' equal to your mortgage interest rate, which is often far superior to what you might earn in a standard savings account.
+          </p>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Strategy: Avalanche vs. Snowball</h3>
+          <p>
+            When tackling multiple debts, you have two primary approaches:
+          </p>
+          <ul className="list-disc pl-5 space-y-2 mt-2">
+            <li><strong>Debt Avalanche:</strong> Target your highest-interest debt first. This is the mathematically optimal path to save the most total interest.</li>
+            <li><strong>Debt Snowball:</strong> Target your smallest balances first. This delivers quick wins, boosting your psychological momentum to keep going.</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Visualize Your Debt Freedom</h3>
+          <p>
+            Stop guessing the impact of your overpayments. Our Debt Overpayment simulator lets you input your actual balances, rates, and terms, then model the magic of extra monthly contributions. 
+          </p>
+
+          <div className="my-6">
+            <BlogEmbeddableDebtOverpayment />
+          </div>
+
+          <p className="mt-6">
+            Use the tool above to add your extra monthly contribution. Watch the graph and the summary boxes update in real-time to show exactly how many years you can knock off your mortgage or loan, and the thousands of pounds in interest you'll save just by staying the course.
+          </p>
         </div>
       )
     },
@@ -199,6 +327,9 @@ export default function Blog({
           <ul className="list-disc pl-5 space-y-3 mt-2">
             <li>
               <strong>1. Slide into Your New Hours:</strong> Start at the Salary Calculator. Input your full-time Equivalent (FTE) gross salary, hit the <strong>Pro Rata Toggle</strong>, and move the slider to your desired working days (e.g., 3 or 4 days). Watch your exact Income Tax and National Insurance deductions recalculate instantly.
+              <div className="mt-4">
+                <BlogEmbeddableProRataSlider />
+              </div>
             </li>
             <li>
               <strong>2. Stress-Test Your Budget:</strong> Let your new pro rata take-home pay <em>flow</em> automatically into the Budget Planner. Input your rent, mortgage, and core bills to see if your new income comfortably covers your lifestyle. 
@@ -271,7 +402,6 @@ export default function Blog({
             Whether you are negotiating an internal pay rise, weighing up a competitor's offer, or bouncing back into a new role, seeing a higher gross salary on a contract is a fantastic feeling. But making career decisions based purely on that top-line number is a dangerous game.
           </p>
 
-          <h3 className="text-lg font-semibold text-zinc-900 mt-6">The "Gross Pay" Illusion</h3>
           <p>
             When calculating the value of a new job offer in the UK, many professionals simply subtract their old salary from their new one. But HMRC doesn't work like that. Depending on your tax bracket, a massive chunk of that new pay rise will be immediately swallowed by 40% higher-rate tax, National Insurance, and the 9% Student Loan deduction. 
           </p>
@@ -302,6 +432,10 @@ export default function Blog({
               <strong>4. Flow into the Future:</strong> The comparison doesn't stop at the calculator. Let both scenarios <em>flow</em> down into your Budget Planner. Toggle between A and B to see how the new offer expands your <strong>Surplus Cash</strong>. Finally, push that new surplus into the Savings Compound or Debt calculators to see exactly how many years this new job will shave off your mortgage or accelerate your financial freedom.
             </li>
           </ul>
+
+          <div className="my-6">
+            <BlogEmbeddableComparator grossSalaryA={50000} grossSalaryB={60000} />
+          </div>
 
           <p className="mt-6">
             A career move is a life-changing decision. Let the data guide you. Hit the simulation button above to set up a £50k vs £60k comparison right now, and see exactly what that pay rise actually looks like in your wallet!
@@ -355,9 +489,31 @@ export default function Blog({
       ],
       fullContent: (
         <div className="space-y-6 text-zinc-700 leading-relaxed text-sm">
-            <p>When it comes to paying off debt, there are two primary schools of thought: the <strong>Debt Avalanche</strong> and the <strong>Debt Snowball</strong>. The Avalanche strategy targets your highest-interest debt first, which is mathematically optimal for saving the most on interest costs. The Snowball strategy targets your smallest balances first, which provides psychological wins as you clear accounts completely—building the momentum needed to stay the course.</p>
-            <p>Regardless of the strategy you choose, the key to success is <strong>extra payments</strong>. Any amount over your minimum required payment goes directly towards the principal balance, which stops interest from accruing on that amount immediately. Over months and years, those small extra payments dramatically shorten the total time you are in debt.</p>
-            <p>Use our <strong>Debt Overpayment tool</strong> to visualize this clearly. Input your balances, minimum payments, and interest rates, and then add your extra monthly contribution. Watching the total time to debt-freedom shrink in real-time is one of the most rewarding parts of taking control of your personal finances.</p>
+          <p>
+            Debt overpayment math is remarkably powerful. Because mortgage interest compounds daily on your remaining balance, reducing that balance early has a disproportionately positive effect on the lifetime cost of your debt. By making small, consistent overpayments—even just £100 or £200 a month—you aren't just shortening your mortgage term; you are effectively investing in a guaranteed, tax-free 'return' equal to your mortgage interest rate, which is often far superior to what you might earn in a standard savings account.
+          </p>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Strategy: Avalanche vs. Snowball</h3>
+          <p>
+            When tackling multiple debts, you have two primary approaches:
+          </p>
+          <ul className="list-disc pl-5 space-y-2 mt-2">
+            <li><strong>Debt Avalanche:</strong> Target your highest-interest debt first. This is the mathematically optimal path to save the most total interest.</li>
+            <li><strong>Debt Snowball:</strong> Target your smallest balances first. This delivers quick wins, boosting your psychological momentum to keep going.</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Visualize Your Debt Freedom</h3>
+          <p>
+            Stop guessing the impact of your overpayments. Our Debt Overpayment simulator lets you input your actual balances, rates, and terms, then model the magic of extra monthly contributions. 
+          </p>
+
+          <div className="my-6">
+            <BlogEmbeddableDebtOverpayment />
+          </div>
+
+          <p className="mt-6">
+            Use the tool above to add your extra monthly contribution. Watch the graph and the summary boxes update in real-time to show exactly how many years you can knock off your mortgage or loan, and the thousands of pounds in interest you'll save just by staying the course.
+          </p>
         </div>
       )
     },

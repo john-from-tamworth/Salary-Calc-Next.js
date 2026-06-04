@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   HeartCrack,
   Coins,
-  RotateCcw
+  RotateCcw,
+  BookOpen
 } from 'lucide-react';
 
 interface SalaryCalculatorProps {
@@ -77,18 +78,26 @@ interface SalaryCalculatorProps {
   setIsTaxCodesOpen: (open: boolean) => void;
   isStudentLoansOpen: boolean;
   setIsStudentLoansOpen: (open: boolean) => void;
+  setCurrentPage: (page: string) => void;
+  setViewingArticleId: (id: string | null) => void;
 
   // New comparison and benefits in kind props
   benefitsInKind?: number;
   setBenefitsInKind?: (val: number) => void;
   bonusInput?: string;
   setBonusInput?: (val: string) => void;
-  overtimeInput?: string;
-  setOvertimeInput?: (val: string) => void;
+  bonusType?: 'fixed' | 'percentage';
+  setBonusType?: (val: 'fixed' | 'percentage') => void;
+  bonusFrequency?: 'monthly' | 'one-off';
+  setBonusFrequency?: (val: 'monthly' | 'one-off') => void;
+  overtimeHours?: string;
+  setOvertimeHours?: (val: string) => void;
+  overtimeRate?: number;
+  setOvertimeRate?: (val: number) => void;
   childcareInput?: string;
   setChildcareInput?: (val: string) => void;
-  childBenefitInput?: string;
-  setChildBenefitInput?: (val: string) => void;
+  otherNonTaxedIncomeInput?: string;
+  setOtherNonTaxedIncomeInput?: (val: string) => void;
   compareMode?: boolean;
   toggleCompareMode?: () => void;
   editingScenario?: 'A' | 'B';
@@ -97,6 +106,7 @@ interface SalaryCalculatorProps {
   setActiveScenarioFlow?: (val: 'A' | 'B') => void;
   breakdownA?: SalaryBreakdown;
   breakdownB?: SalaryBreakdown;
+  breakdownNoBonus?: SalaryBreakdown;
   marginalTaxRateA?: number;
   marginalTaxRateB?: number;
   grossSalaryA?: number;
@@ -162,17 +172,25 @@ export default function SalaryCalculator({
   setIsTaxCodesOpen,
   isStudentLoansOpen,
   setIsStudentLoansOpen,
+  setCurrentPage,                
+  setViewingArticleId,
 
   benefitsInKind = 0,
   setBenefitsInKind = () => {},
   bonusInput = '0',
   setBonusInput = () => {},
-  overtimeInput = '0',
-  setOvertimeInput = () => {},
+  bonusType = 'fixed',
+  setBonusType = () => {},
+  bonusFrequency = 'monthly',
+  setBonusFrequency = () => {},
+  overtimeHours = '0',
+  setOvertimeHours = () => {},
+  overtimeRate = 1,
+  setOvertimeRate = () => {},
   childcareInput = '0',
   setChildcareInput = () => {},
-  childBenefitInput = '0',
-  setChildBenefitInput = () => {},
+  otherNonTaxedIncomeInput = '0',
+  setOtherNonTaxedIncomeInput = () => {},
   compareMode = false,
   toggleCompareMode = () => {},
   editingScenario = 'A',
@@ -181,6 +199,7 @@ export default function SalaryCalculator({
   setActiveScenarioFlow = () => {},
   breakdownA,
   breakdownB,
+  breakdownNoBonus,
   marginalTaxRateA = 0,
   marginalTaxRateB = 0,
   grossSalaryA = 50000,
@@ -191,6 +210,13 @@ export default function SalaryCalculator({
   setPensionRateB = () => {},
   resetAll = () => {}
 }: SalaryCalculatorProps) {
+
+  const isValidTaxCode = (code: string) => {
+    // Basic UK tax code validation regex
+    const regex = /^(S|C)?([0-9]+(L|M|N)|K[0-9]+|BR|D0|D1|NT)$/i;
+    return regex.test(code.trim());
+  };
+  const isTaxCodeValid = useMemo(() => isValidTaxCode(taxCode), [taxCode]);
 
   // Dynamic live advisor alerts calculations
   const adjustedIncome = useMemo(() => {
@@ -379,6 +405,16 @@ export default function SalaryCalculator({
             <HelpCircle className="w-4 h-4 text-emerald-500" />
             <span>Data Sources and Methodology</span>
           </button>
+          <button
+            onClick={() => {
+              setCurrentPage('blog');
+              setViewingArticleId('how-to-use-netpayflow');
+            }}
+            className="px-3.5 py-2 rounded-xl border bg-white border-zinc-200 text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+          >
+            <BookOpen className="w-4 h-4 text-emerald-500" />
+            <span>How to use the site</span>
+          </button>
         </div>
       </div>
 
@@ -452,7 +488,7 @@ export default function SalaryCalculator({
             )}
           </div>
 
-          {/* 1. Annual Gross Salary Input - Toggle */}
+          {/* 1. Annual Gross Salary Input */}
           <div className="space-y-3">
             <div className="flex gap-2 bg-zinc-50 border border-zinc-200 shadow-3xs p-1 rounded-xl">
               <button
@@ -484,8 +520,8 @@ export default function SalaryCalculator({
                         
                         {/* Compare Toggle Switch moved directly inside the Annual Salary box */}
                         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 shadow-3xs px-2.5 py-1 rounded-lg">
-                        <label className="text-[10px] font-extrabold text-zinc-600 cursor-pointer select-none" htmlFor="compare-toggle-input">
-                            Compare Salary A & B
+                        <label className="text-[10px] font-extrabold text-zinc-600 cursor-pointer select-none" htmlFor="compare-toggle-input" title="Enable comparison mode to view two scenarios side-by-side and compare different tax setups, salaries, or pension contributions">
+                            Compare Salary
                         </label>
                         <button
                             id="compare-toggle-input"
@@ -520,7 +556,6 @@ export default function SalaryCalculator({
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">/ yr</span>
                     </div>
 
-                    {/* Range Slider for Scrubbing - Replaced +- 1000 buttons */}
                     <div className="space-y-1.5 pt-1">
                         <div className="flex justify-between items-center text-[10px] text-zinc-400 font-bold">
                         <span>£10,000</span>
@@ -555,6 +590,170 @@ export default function SalaryCalculator({
                     </div>
                 </div>
             )}
+          </div>
+          
+
+          
+          {/* Pro-Rata Calculator - Moved up */}
+          <div className="border-t border-zinc-100 pt-3">
+            <div className="flex items-center justify-between py-2">
+              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
+                Pro-rata Salary
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsProRata(!isProRata)}
+                className={`cursor-pointer w-9 h-5 rounded-full p-0.5 transition-colors duration-205 focus:outline-none ${
+                  isProRata ? 'bg-zinc-900' : 'bg-zinc-200'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isProRata ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
+
+            {isProRata && (
+              <div className="space-y-4 pt-3 transition-all duration-350 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="pro-rata-days-input">
+                    <span>Days per Week Worked</span>
+                    <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-1.5 rounded">{proRataDays} days</span>
+                  </label>
+                  <input
+                    id="pro-rata-days-input"
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="0.5"
+                    value={proRataDays}
+                    onChange={e => setProRataDays(parseFloat(e.target.value))}
+                    className="w-full h-1.5 accent-zinc-950 bg-zinc-150 rounded-lg cursor-pointer"
+                  />
+                  <p className="text-[10px] text-zinc-500">
+                    Your gross salary is pro-rated based on a {proRataDays}-day week out of a full-time 5-day week.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Tax Jurisdiction (Region) - Moved here for Core */}
+          <div className="space-y-2 pt-2 border-t border-zinc-100">
+            <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5 pt-2">
+              <MapPin className="w-3.5 h-3.5 text-zinc-450" />
+              Tax Jurisdiction
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleRegionChange('UK')}
+                className={`cursor-pointer p-3 rounded-xl border flex items-center justify-between transition-all ${
+                  region === 'UK'
+                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
+                    : 'border-zinc-200 bg-white text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900'
+                }`}
+                id="btn-region-uk"
+              >
+                <div className="text-left">
+                  <div className="text-xs font-bold">Rest of UK</div>
+                  <div className={`text-[9px] mt-0.5 ${region === 'UK' ? 'text-zinc-350' : 'text-zinc-400'}`}>
+                    England, Wales, NI
+                  </div>
+                </div>
+                <span className="text-lg">🇬🇧</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleRegionChange('Scotland')}
+                className={`cursor-pointer p-3 rounded-xl border flex items-center justify-between transition-all ${
+                  region === 'Scotland'
+                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
+                    : 'border-zinc-200 bg-white text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900'
+                }`}
+                id="btn-region-scotland"
+              >
+                <div className="text-left">
+                  <div className="text-xs font-bold">Scotland</div>
+                  <div className={`text-[9px] mt-0.5 ${region === 'Scotland' ? 'text-zinc-350' : 'text-zinc-400'}`}>
+                    Scottish tax bands
+                  </div>
+                </div>
+                <span className="text-lg">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
+              </button>
+            </div>
+          </div>
+
+
+          {/* 3. Pension Configuration */}
+          <div className="space-y-3 pt-4 border-t border-zinc-100">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
+                <PiggyBank className="w-4 h-4 text-zinc-550" />
+                Pension Contribution
+              </label>
+              <div className="flex items-center gap-1 text-xs font-bold text-zinc-950 bg-zinc-100 px-2 py-0.5 rounded-lg font-mono">
+                <span>{pensionRate}%</span>
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.5"
+              value={pensionRate}
+              onChange={e => setPensionRate(parseFloat(e.target.value))}
+              className="w-full accent-zinc-900 h-1 rounded-lg bg-zinc-200 cursor-pointer"
+            />
+
+            {/* Pension options */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { value: 'salarySacrifice', label: 'Salary Sacrifice', detail: 'Saves tax & NI' },
+                { value: 'netPay', label: 'Net Pay', detail: 'Saves tax only' },
+                { value: 'reliefAtSource', label: 'Relief at Source', detail: 'Personal relief' }
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPensionType(opt.value as any)}
+                  className={`cursor-pointer p-2 rounded-xl border text-center transition-all flex flex-col justify-between h-15 ${
+                    pensionType === opt.value
+                      ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm'
+                      : 'border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700'
+                  }`}
+                >
+                  <span className="text-[10px] font-bold leading-tight block">{opt.label}</span>
+                  <span className={`text-[8px] leading-none ${pensionType === opt.value ? 'text-zinc-300' : 'text-zinc-450'}`}>
+                    {opt.detail}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center bg-zinc-50 p-2.5 rounded-xl border border-zinc-150">
+              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider" title="Salary Basis determines if pension contributions are calculated based on your total gross salary or only on 'Qualifying Earnings' (earnings within a specific band)">Salary Basis</span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setPensionOn('total')}
+                  className={`cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase transition-all ${
+                    pensionOn === 'total' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-250' : 'text-zinc-400 hover:text-zinc-700'
+                  }`}
+                >
+                  Total Salary
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPensionOn('qualifying')}
+                  className={`cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase transition-all ${
+                    pensionOn === 'qualifying' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-250' : 'text-zinc-400 hover:text-zinc-700'
+                  }`}
+                >
+                  Qualifying Earnings
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Dynamic Smart Tax Alert & Auto-Deductions optimization (Advisor Box) */}
@@ -611,125 +810,140 @@ export default function SalaryCalculator({
             </div>
           )}
 
-          {/* 2. Employment Jurisdiction (Region) */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-zinc-450" />
-              Tax Jurisdiction
-            </label>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleRegionChange('UK')}
-                className={`cursor-pointer p-3 rounded-xl border flex items-center justify-between transition-all ${
-                  region === 'UK'
-                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
-                    : 'border-zinc-200 bg-white text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900'
-                }`}
-                id="btn-region-uk"
-              >
-                <div className="text-left">
-                  <div className="text-xs font-bold">Rest of UK</div>
-                  <div className={`text-[9px] mt-0.5 ${region === 'UK' ? 'text-zinc-350' : 'text-zinc-400'}`}>
-                    England, Wales, NI
+
+
+
+
+          {/* Benefits Section */}
+          <div className="border-t border-zinc-100 pt-3">
+            <button
+              type="button"
+              onClick={() => setIsBenefitsOpen(!isBenefitsOpen)}
+              className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4 text-zinc-550" />
+                <span className="text-xs font-extrabold uppercase tracking-wider">Bonus, Overtime & Other Income</span>
+              </div>
+              {isBenefitsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {isBenefitsOpen && (
+              <div className="space-y-4 pt-3 transition-all duration-350">
+                <div className="space-y-4 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="bonus-input">
+                       <span>Bonus</span>
+                     </label>
+                     <div className="flex gap-2 mb-2">
+                       <button
+                         type="button"
+                         onClick={() => setBonusType('fixed')}
+                         className={`flex-1 text-xs py-1 rounded-lg border font-bold ${bonusType === 'fixed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}
+                       >
+                         Fixed (£)
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setBonusType('percentage')}
+                         className={`flex-1 text-xs py-1 rounded-lg border font-bold ${bonusType === 'percentage' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}
+                       >
+                         Percent (%)
+                       </button>
+                     </div>
+                     <div className="flex gap-2 mb-2">
+                       <button
+                         type="button"
+                         onClick={() => setBonusFrequency('monthly')}
+                         title="Bonus received in every pay period"
+                         className={`flex-1 text-xs py-1 rounded-lg border font-bold ${bonusFrequency === 'monthly' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}
+                       >
+                         Monthly
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setBonusFrequency('one-off')}
+                         title="Bonus received once in a specific month"
+                         className={`flex-1 text-xs py-1 rounded-lg border font-bold ${bonusFrequency === 'one-off' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}
+                       >
+                         One-off
+                       </button>
+                     </div>
+                     <div className="relative">
+                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">{bonusType === 'fixed' ? '£' : '%'}</span>
+                       <input 
+                         id="bonus-input" 
+                         type="number" 
+                         value={bonusInput} 
+                         onChange={e => setBonusInput(e.target.value)} 
+                         className="w-full text-xs pl-7 pr-3 py-2 bg-white border border-zinc-200 rounded-xl" 
+                       />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="overtime-hours-input">
+                        <span title="Calculation: Hourly Rate * Hours * Rate * 52">Overtime Hours</span> (considered weekly)
+                      </label>
+                     <input id="overtime-hours-input" type="number" value={overtimeHours} onChange={e => setOvertimeHours(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center">
+                       <span>Overtime Rate</span>
+                     </label>
+                     <div className="flex gap-2">
+                        {[1, 1.5, 2].map(rate => (
+                            <button
+                                key={rate}
+                                type="button"
+                                onClick={() => setOvertimeRate(rate)}
+                                className={`flex-1 text-xs py-1 rounded-lg border font-bold ${overtimeRate === rate ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}
+                            >
+                                {rate}x
+                            </button>
+                        ))}
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="childcare-input">
+                       <span title="Salary sacrifice scheme: reduces your taxable gross income before tax, NI, and pension contributions are calculated">Childcare Vouchers</span> (pre-tax)
+                     </label>
+                     <input id="childcare-input" type="number" value={childcareInput} onChange={e => setChildcareInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="other-non-taxed-income-input">
+                       <span title="Tax-free monthly income (e.g., Child Benefit): entered amount is multiplied by 12 and added to your annual net pay without increasing taxable income">Other Non-Taxed Income (Monthly)</span>
+                     </label>
+                     <div className="relative">
+                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">£</span>
+                       <input id="other-non-taxed-income-input" type="number" value={otherNonTaxedIncomeInput} onChange={e => setOtherNonTaxedIncomeInput(e.target.value)} className="w-full text-xs pl-7 p-2 bg-white border border-zinc-200 rounded-xl" />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="benefits-in-kind-input">
+                      <span>Benefits in Kind (P11D value)</span>
+                      <span className="text-[9px] text-zinc-400 font-mono">Company car / Medical</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">£</span>
+                      <input
+                        id="benefits-in-kind-input"
+                        type="number"
+                        min="0"
+                        max="1000000"
+                        step="100"
+                        value={benefitsInKind || ''}
+                        onChange={e => setBenefitsInKind(Math.max(0, parseFloat(e.target.value) || 0))}
+                        className="w-full text-xs pl-7 pr-12 py-2 bg-white border border-zinc-200 rounded-xl font-bold focus:border-zinc-400 focus:outline-none"
+                        placeholder="e.g. 1200"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-zinc-400">/ yr</span>
+                    </div>
                   </div>
                 </div>
-                <span className="text-lg">🇬🇧</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRegionChange('Scotland')}
-                className={`cursor-pointer p-3 rounded-xl border flex items-center justify-between transition-all ${
-                  region === 'Scotland'
-                    ? 'border-zinc-950 bg-zinc-950 text-white shadow-sm'
-                    : 'border-zinc-200 bg-white text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900'
-                }`}
-                id="btn-region-scotland"
-              >
-                <div className="text-left">
-                  <div className="text-xs font-bold">Scotland</div>
-                  <div className={`text-[9px] mt-0.5 ${region === 'Scotland' ? 'text-zinc-350' : 'text-zinc-400'}`}>
-                    Scottish tax bands
-                  </div>
-                </div>
-                <span className="text-lg">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 3. Pension Configuration */}
-          <div className="space-y-3 pt-4 border-t border-zinc-100">
-            <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
-                <PiggyBank className="w-4 h-4 text-zinc-550" />
-                Pension Contribution
-              </label>
-              <div className="flex items-center gap-1 text-xs font-bold text-zinc-950 bg-zinc-100 px-2 py-0.5 rounded-lg font-mono">
-                <span>{pensionRate}%</span>
               </div>
-            </div>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.5"
-              value={pensionRate}
-              onChange={e => setPensionRate(parseFloat(e.target.value))}
-              className="w-full accent-zinc-900 h-1 rounded-lg bg-zinc-200 cursor-pointer"
-            />
-
-            {/* Pension options */}
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { value: 'salarySacrifice', label: 'Salary Sacrifice', detail: 'Saves tax & NI' },
-                { value: 'netPay', label: 'Net Pay', detail: 'Saves tax only' },
-                { value: 'reliefAtSource', label: 'Relief at Source', detail: 'Personal relief' }
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setPensionType(opt.value as any)}
-                  className={`cursor-pointer p-2 rounded-xl border text-center transition-all flex flex-col justify-between h-15 ${
-                    pensionType === opt.value
-                      ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm'
-                      : 'border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700'
-                  }`}
-                >
-                  <span className="text-[10px] font-bold leading-tight block">{opt.label}</span>
-                  <span className={`text-[8px] leading-none ${pensionType === opt.value ? 'text-zinc-300' : 'text-zinc-450'}`}>
-                    {opt.detail}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-between items-center bg-zinc-50 p-2.5 rounded-xl border border-zinc-150">
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Salary Basis</span>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPensionOn('total')}
-                  className={`cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase transition-all ${
-                    pensionOn === 'total' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-250' : 'text-zinc-400 hover:text-zinc-700'
-                  }`}
-                >
-                  Total Salary
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPensionOn('qualifying')}
-                  className={`cursor-pointer px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase transition-all ${
-                    pensionOn === 'qualifying' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-250' : 'text-zinc-400 hover:text-zinc-700'
-                  }`}
-                >
-                  Qualifying Earnings
-                </button>
-              </div>
-            </div>
+            )}
           </div>
-
+          
           {/* 4. Student Loan Selector */}
           <div className="space-y-2 pt-4 border-t border-zinc-100">
             <button
@@ -782,112 +996,6 @@ export default function SalaryCalculator({
               </div>
             )}
           </div>
-
-          {/* Pro-Rata Calculator */}
-          <div className="border-t border-zinc-100 pt-3">
-            <div className="flex items-center justify-between py-2">
-              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
-                Pro-rata Salary
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsProRata(!isProRata)}
-                className={`cursor-pointer w-9 h-5 rounded-full p-0.5 transition-colors duration-205 focus:outline-none ${
-                  isProRata ? 'bg-zinc-900' : 'bg-zinc-200'
-                }`}
-              >
-                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isProRata ? 'translate-x-4' : ''}`} />
-              </button>
-            </div>
-
-            {isProRata && (
-              <div className="space-y-4 pt-3 transition-all duration-350 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="pro-rata-days-input">
-                    <span>Days per Week Worked</span>
-                    <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-1.5 rounded">{proRataDays} days</span>
-                  </label>
-                  <input
-                    id="pro-rata-days-input"
-                    type="range"
-                    min="1"
-                    max="5"
-                    step="0.5"
-                    value={proRataDays}
-                    onChange={e => setProRataDays(parseFloat(e.target.value))}
-                    className="w-full h-1.5 accent-zinc-950 bg-zinc-150 rounded-lg cursor-pointer"
-                  />
-                  <p className="text-[10px] text-zinc-500">
-                    Your gross salary is pro-rated based on a {proRataDays}-day week out of a full-time 5-day week.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Benefits Section */}
-          <div className="border-t border-zinc-100 pt-3">
-            <button
-              type="button"
-              onClick={() => setIsBenefitsOpen(!isBenefitsOpen)}
-              className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
-            >
-              <span className="text-xs font-extrabold uppercase tracking-wider">Benefits & Income Adjustments</span>
-              {isBenefitsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {isBenefitsOpen && (
-              <div className="space-y-4 pt-3 transition-all duration-350">
-                <div className="space-y-4 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
-                  <div className="space-y-2">
-                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="bonus-input">
-                       <span>Bonus</span>
-                     </label>
-                     <input id="bonus-input" type="number" value={bonusInput} onChange={e => setBonusInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="overtime-input">
-                       <span>Overtime</span>
-                     </label>
-                     <input id="overtime-input" type="number" value={overtimeInput} onChange={e => setOvertimeInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="childcare-input">
-                       <span>Childcare Vouchers</span>
-                     </label>
-                     <input id="childcare-input" type="number" value={childcareInput} onChange={e => setChildcareInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                     <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="childbenefit-input">
-                       <span>Child Benefit Received</span>
-                     </label>
-                     <input id="childbenefit-input" type="number" value={childBenefitInput} onChange={e => setChildBenefitInput(e.target.value)} className="w-full text-xs p-2 bg-white border border-zinc-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="benefits-in-kind-input">
-                      <span>Benefits in Kind (P11D value)</span>
-                      <span className="text-[9px] text-zinc-400 font-mono">Company car / Medical</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold">£</span>
-                      <input
-                        id="benefits-in-kind-input"
-                        type="number"
-                        min="0"
-                        max="1000000"
-                        step="100"
-                        value={benefitsInKind || ''}
-                        onChange={e => setBenefitsInKind(Math.max(0, parseFloat(e.target.value) || 0))}
-                        className="w-full text-xs pl-7 pr-12 py-2 bg-white border border-zinc-200 rounded-xl font-bold focus:border-zinc-400 focus:outline-none"
-                        placeholder="e.g. 1200"
-                      />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-zinc-400">/ yr</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
           
           <div className="border-t border-zinc-100 pt-3">
             <button
@@ -895,7 +1003,10 @@ export default function SalaryCalculator({
               onClick={() => setIsTaxCodesOpen(!isTaxCodesOpen)}
               className="cursor-pointer w-full flex items-center justify-between py-2 text-zinc-700 hover:text-zinc-900 transition-colors"
             >
-              <span className="text-xs font-extrabold uppercase tracking-wider">Advanced Tax Codes</span>
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4 text-zinc-550" />
+                <span className="text-xs font-extrabold uppercase tracking-wider">Advanced Tax Codes</span>
+              </div>
               {isTaxCodesOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
 
@@ -925,6 +1036,9 @@ export default function SalaryCalculator({
                         className="w-full text-xs p-2.5 bg-white border border-zinc-200 rounded-xl font-bold font-mono focus:border-zinc-400 focus:outline-none"
                         placeholder="e.g. 1257L or K100"
                       />
+                      {!isTaxCodeValid && (
+                        <div className="text-rose-500 text-[10px] font-bold pt-1">Invalid tax code format</div>
+                      )}
                       <div className="text-[10px] text-zinc-500 space-y-1 bg-white p-2.5 rounded-lg border border-zinc-100">
                         <div>
                           Parsed Allowance:{' '}
@@ -1063,7 +1177,9 @@ export default function SalaryCalculator({
           <BreakdownTable 
             breakdown={breakdownA ?? breakdown} 
             breakdownB={compareMode ? breakdownB : undefined} 
-            compareMode={compareMode} 
+            compareMode={compareMode}
+            bonusFrequency={bonusFrequency}
+            breakdownNoBonus={breakdownNoBonus}                
           />
         </div>
       </div>

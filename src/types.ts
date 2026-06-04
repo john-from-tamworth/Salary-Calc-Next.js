@@ -16,8 +16,10 @@ export interface SalaryInputs {
   benefitsInKind?: number;
   bonus?: number;
   overtime?: number;
+  overtimeHours?: number;
+  overtimeRate?: number;
   childcareVouchers?: number;
-  childBenefit?: number;
+  otherNonTaxedIncome?: number;
 }
 
 export interface TaxBand {
@@ -40,7 +42,7 @@ export interface SalaryBreakdown {
   bonus?: number;
   overtime?: number;
   childcareVouchersDeduction?: number;
-  childBenefitReceived?: number;
+  otherNonTaxedIncome?: number;
   hicbcCharge?: number;
 }
 

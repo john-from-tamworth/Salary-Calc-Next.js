@@ -22,6 +22,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState<string>('salary-calculator');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const [viewingArticleId, setViewingArticleId] = useState<string | null>(null);
 
   // Core Calculator Input States (Scenario A)
   const [grossInputA, setGrossInputA] = useState<string>('33000');
@@ -40,9 +41,13 @@ export default function Home() {
   const [marriageAllowanceModeA, setMarriageAllowanceModeA] = useState<'receive' | 'transfer' | 'none'>('none');
   const [benefitsInKindA, setBenefitsInKindA] = useState<number>(0);
   const [bonusInputA, setBonusInputA] = useState<string>('0');
+  const [bonusTypeA, setBonusTypeA] = useState<'fixed' | 'percentage'>('fixed');
+  const [bonusFrequencyA, setBonusFrequencyA] = useState<'monthly' | 'one-off'>('monthly');
   const [overtimeInputA, setOvertimeInputA] = useState<string>('0');
+  const [overtimeHoursA, setOvertimeHoursA] = useState<string>('0');
+  const [overtimeRateA, setOvertimeRateA] = useState<number>(1);
   const [childcareInputA, setChildcareInputA] = useState<string>('0');
-  const [childBenefitInputA, setChildBenefitInputA] = useState<string>('0');
+  const [otherNonTaxedIncomeInputA, setOtherNonTaxedIncomeInputA] = useState<string>('0');
 
   // Core Calculator Input States (Scenario B)
   const [grossInputB, setGrossInputB] = useState<string>('33000');
@@ -61,9 +66,13 @@ export default function Home() {
   const [marriageAllowanceModeB, setMarriageAllowanceModeB] = useState<'receive' | 'transfer' | 'none'>('none');
   const [benefitsInKindB, setBenefitsInKindB] = useState<number>(0);
   const [bonusInputB, setBonusInputB] = useState<string>('0');
+  const [bonusTypeB, setBonusTypeB] = useState<'fixed' | 'percentage'>('fixed');
+  const [bonusFrequencyB, setBonusFrequencyB] = useState<'monthly' | 'one-off'>('monthly');
   const [overtimeInputB, setOvertimeInputB] = useState<string>('0');
+  const [overtimeHoursB, setOvertimeHoursB] = useState<string>('0');
+  const [overtimeRateB, setOvertimeRateB] = useState<number>(1);
   const [childcareInputB, setChildcareInputB] = useState<string>('0');
-  const [childBenefitInputB, setChildBenefitInputB] = useState<string>('0');
+  const [otherNonTaxedIncomeInputB, setOtherNonTaxedIncomeInputB] = useState<string>('0');
 
   // Comparison controls
   const [compareMode, setCompareMode] = useState<boolean>(false);
@@ -117,43 +126,51 @@ export default function Home() {
 
   const bonusA = useMemo(() => {
     const parsed = parseFloat(bonusInputA);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [bonusInputA]);
+    const val = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    const annualBonus = bonusTypeA === 'percentage' ? (val / 100) * grossSalaryA : val;
+    return bonusFrequencyA === 'monthly' ? annualBonus * 12 : annualBonus;
+  }, [bonusInputA, bonusTypeA, bonusFrequencyA, grossSalaryA]);
 
   const overtimeA = useMemo(() => {
-    const parsed = parseFloat(overtimeInputA);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [overtimeInputA]);
+    const hours = parseFloat(overtimeHoursA) || 0;
+    const rate = overtimeRateA || 1;
+    const baseHourRate = isHourlyA ? (parseFloat(hourlyRateA) || 0) : ((grossSalaryA / 52) / (parseFloat(hoursPerWeekA) || 37.5));
+    return hours * (baseHourRate * rate) * 52;
+  }, [overtimeHoursA, overtimeRateA, hourlyRateA, grossSalaryA, isHourlyA, hoursPerWeekA]);
 
   const childcareA = useMemo(() => {
     const parsed = parseFloat(childcareInputA);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
   }, [childcareInputA]);
 
-  const childBenefitA = useMemo(() => {
-    const parsed = parseFloat(childBenefitInputA);
+  const otherNonTaxedIncomeA = useMemo(() => {
+    const parsed = parseFloat(otherNonTaxedIncomeInputA);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [childBenefitInputA]);
+  }, [otherNonTaxedIncomeInputA]);
 
   const bonusB = useMemo(() => {
     const parsed = parseFloat(bonusInputB);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [bonusInputB]);
+    const val = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    const annualBonus = bonusTypeB === 'percentage' ? (val / 100) * grossSalaryB : val;
+    return bonusFrequencyB === 'monthly' ? annualBonus * 12 : annualBonus;
+  }, [bonusInputB, bonusTypeB, bonusFrequencyB, grossSalaryB]);
 
   const overtimeB = useMemo(() => {
-    const parsed = parseFloat(overtimeInputB);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [overtimeInputB]);
+    const hours = parseFloat(overtimeHoursB) || 0;
+    const rate = overtimeRateB || 1;
+    const baseHourRate = isHourlyB ? (parseFloat(hourlyRateB) || 0) : ((grossSalaryB / 52) / (parseFloat(hoursPerWeekB) || 37.5));
+    return hours * (baseHourRate * rate) * 52;
+  }, [overtimeHoursB, overtimeRateB, hourlyRateB, grossSalaryB, isHourlyB, hoursPerWeekB]);
 
   const childcareB = useMemo(() => {
     const parsed = parseFloat(childcareInputB);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
   }, [childcareInputB]);
 
-  const childBenefitB = useMemo(() => {
-    const parsed = parseFloat(childBenefitInputB);
+  const otherNonTaxedIncomeB = useMemo(() => {
+    const parsed = parseFloat(otherNonTaxedIncomeInputB);
     return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [childBenefitInputB]);
+  }, [otherNonTaxedIncomeInputB]);
 
   // Read targets for currently edited scenario
   const grossInput = editingScenario === 'A' ? grossInputA : grossInputB;
@@ -169,9 +186,12 @@ export default function Home() {
   const benefitsInKind = editingScenario === 'A' ? benefitsInKindA : benefitsInKindB;
   
   const bonusInput = editingScenario === 'A' ? bonusInputA : bonusInputB;
-  const overtimeInput = editingScenario === 'A' ? overtimeInputA : overtimeInputB;
+  const bonusType = editingScenario === 'A' ? bonusTypeA : bonusTypeB;
+  const bonusFrequency = editingScenario === 'A' ? bonusFrequencyA : bonusFrequencyB;
+  const overtimeHours = editingScenario === 'A' ? overtimeHoursA : overtimeHoursB;
+  const overtimeRate = editingScenario === 'A' ? overtimeRateA : overtimeRateB;
   const childcareInput = editingScenario === 'A' ? childcareInputA : childcareInputB;
-  const childBenefitInput = editingScenario === 'A' ? childBenefitInputA : childBenefitInputB;
+  const otherNonTaxedIncomeInput = editingScenario === 'A' ? otherNonTaxedIncomeInputA : otherNonTaxedIncomeInputB;
 
   const grossSalary = editingScenario === 'A' ? grossSalaryA : grossSalaryB;
 
@@ -220,17 +240,29 @@ export default function Home() {
     if (editingScenario === 'B') setBonusInputB(val);
     else setBonusInputA(val);
   };
-  const setOvertimeInput = (val: string) => {
-    if (editingScenario === 'B') setOvertimeInputB(val);
-    else setOvertimeInputA(val);
+  const setBonusType = (val: 'fixed' | 'percentage') => {
+    if (editingScenario === 'B') setBonusTypeB(val);
+    else setBonusTypeA(val);
+  };
+  const setBonusFrequency = (val: 'monthly' | 'one-off') => {
+    if (editingScenario === 'B') setBonusFrequencyB(val);
+    else setBonusFrequencyA(val);
+  };
+  const setOvertimeHours = (val: string) => {
+    if (editingScenario === 'B') setOvertimeHoursB(val);
+    else setOvertimeHoursA(val);
+  };
+  const setOvertimeRate = (val: number) => {
+    if (editingScenario === 'B') setOvertimeRateB(val);
+    else setOvertimeRateA(val);
   };
   const setChildcareInput = (val: string) => {
     if (editingScenario === 'B') setChildcareInputB(val);
     else setChildcareInputA(val);
   };
-  const setChildBenefitInput = (val: string) => {
-    if (editingScenario === 'B') setChildBenefitInputB(val);
-    else setChildBenefitInputA(val);
+  const setOtherNonTaxedIncomeInput = (val: string) => {
+    if (editingScenario === 'B') setOtherNonTaxedIncomeInputB(val);
+    else setOtherNonTaxedIncomeInputA(val);
   };
   const setBenefitsInKind = (val: number) => {
     if (editingScenario === 'B') setBenefitsInKindB(val);
@@ -258,12 +290,12 @@ export default function Home() {
       bonus: bonusA,
       overtime: overtimeA,
       childcareVouchers: childcareA,
-      childBenefit: childBenefitA,
+      otherNonTaxedIncome: otherNonTaxedIncomeA,
     };
   }, [
     grossSalaryA, isHourlyA, hourlyRateA, hoursPerWeekA, weeksPerYearA, regionA, pensionRateA, pensionTypeA, pensionOnA,
     studentLoanPlansA, taxCodeA, customTaxCodeA, blindAllowanceA, marriageAllowanceModeA, benefitsInKindA,
-    bonusA, overtimeA, childcareA, childBenefitA
+    bonusA, overtimeA, childcareA, otherNonTaxedIncomeA
   ]);
 
   const salaryInputsB: SalaryInputs = useMemo(() => {
@@ -286,12 +318,12 @@ export default function Home() {
       bonus: bonusB,
       overtime: overtimeB,
       childcareVouchers: childcareB,
-      childBenefit: childBenefitB,
+      otherNonTaxedIncome: otherNonTaxedIncomeB,
     };
   }, [
     grossSalaryB, isHourlyB, hourlyRateB, hoursPerWeekB, weeksPerYearB, regionB, pensionRateB, pensionTypeB, pensionOnB,
     studentLoanPlansB, taxCodeB, customTaxCodeB, blindAllowanceB, marriageAllowanceModeB, benefitsInKindB,
-    bonusB, overtimeB, childcareB, childBenefitB
+    bonusB, overtimeB, childcareB, otherNonTaxedIncomeB
   ]);
 
   // Read targets for currently edited scenario
@@ -333,6 +365,12 @@ export default function Home() {
   const breakdownA = useMemo(() => calculateSalaryDetails(salaryInputsA), [salaryInputsA]);
   const breakdownB = useMemo(() => calculateSalaryDetails(salaryInputsB), [salaryInputsB]);
 
+  // Compute breakdown without bonus for frequency comparison
+  const salaryInputsANoBonus = useMemo(() => ({ ...salaryInputsA, bonus: 0 }), [salaryInputsA]);
+  const salaryInputsBNoBonus = useMemo(() => ({ ...salaryInputsB, bonus: 0 }), [salaryInputsB]);
+  const breakdownANoBonus = useMemo(() => calculateSalaryDetails(salaryInputsANoBonus), [salaryInputsANoBonus]);
+  const breakdownBNoBonus = useMemo(() => calculateSalaryDetails(salaryInputsBNoBonus), [salaryInputsBNoBonus]);
+
   const marginalTaxRateA = useMemo(() => getMarginalTaxRate(salaryInputsA), [salaryInputsA]);
   const marginalTaxRateB = useMemo(() => getMarginalTaxRate(salaryInputsB), [salaryInputsB]);
 
@@ -340,6 +378,11 @@ export default function Home() {
     if (activeScenarioFlow === 'B') return breakdownB;
     return breakdownA;
   }, [activeScenarioFlow, breakdownA, breakdownB]);
+  
+  const breakdownNoBonusForActive = useMemo(() => {
+    if (activeScenarioFlow === 'B') return breakdownBNoBonus;
+    return breakdownANoBonus;
+  }, [activeScenarioFlow, breakdownANoBonus, breakdownBNoBonus]);
 
   const salaryInputs = useMemo(() => {
     if (activeScenarioFlow === 'B') return salaryInputsB;
@@ -393,13 +436,17 @@ export default function Home() {
     setBenefitsInKindA(0);
     setBenefitsInKindB(0);
     setBonusInputA('0');
+    setBonusTypeA('fixed');
+    setBonusFrequencyA('monthly');
     setBonusInputB('0');
+    setBonusTypeB('fixed');
+    setBonusFrequencyB('monthly');
     setOvertimeInputA('0');
     setOvertimeInputB('0');
     setChildcareInputA('0');
     setChildcareInputB('0');
-    setChildBenefitInputA('0');
-    setChildBenefitInputB('0');
+    setOtherNonTaxedIncomeInputA('0');
+    setOtherNonTaxedIncomeInputB('0');
     setCompareMode(false);
     setEditingScenario('A');
     setActiveScenarioFlow('A');
@@ -484,12 +531,24 @@ export default function Home() {
   const [showAbout, setShowAbout] = useState<boolean>(false);
   const [showTerms, setShowTerms] = useState<boolean>(false);
 
+  const handleNavClick = (page: string) => {
+    console.log("Nav click:", page);
+    if (page === 'blog') {
+      setViewingArticleId(null); 
+    }
+    setCurrentPage(page);
+  };
+
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50" id="netpayflow-root">
       {/* Sidebar navigation */}
       <Sidebar
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={(page) => {
+          console.log("Sidebar clicked with:", page);
+          handleNavClick(page);
+        }}
+
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
         mobileOpen={mobileOpen}
@@ -583,6 +642,8 @@ export default function Home() {
               setIsTaxCodesOpen={setIsTaxCodesOpen}
               isStudentLoansOpen={isStudentLoansOpen}
               setIsStudentLoansOpen={setIsStudentLoansOpen}
+              setCurrentPage={setCurrentPage}
+              setViewingArticleId={setViewingArticleId}
               isProRata={isProRata}
               setIsProRata={setIsProRata}
               proRataDays={proRataDays}
@@ -601,12 +662,18 @@ export default function Home() {
               setBenefitsInKind={setBenefitsInKind}
               bonusInput={bonusInput}
               setBonusInput={setBonusInput}
-              overtimeInput={overtimeInput}
-              setOvertimeInput={setOvertimeInput}
+              bonusType={bonusType}
+              setBonusType={setBonusType}
+              bonusFrequency={bonusFrequency}
+              setBonusFrequency={setBonusFrequency}
+              overtimeHours={overtimeHours}
+              setOvertimeHours={setOvertimeHours}
+              overtimeRate={overtimeRate}
+              setOvertimeRate={setOvertimeRate}
               childcareInput={childcareInput}
               setChildcareInput={setChildcareInput}
-              childBenefitInput={childBenefitInput}
-              setChildBenefitInput={setChildBenefitInput}
+              otherNonTaxedIncomeInput={otherNonTaxedIncomeInput}
+              setOtherNonTaxedIncomeInput={setOtherNonTaxedIncomeInput}
               compareMode={compareMode}
               toggleCompareMode={toggleCompareMode}
               editingScenario={editingScenario}
@@ -615,6 +682,7 @@ export default function Home() {
               setActiveScenarioFlow={setActiveScenarioFlow}
               breakdownA={breakdownA}
               breakdownB={breakdownB}
+              breakdownNoBonus={breakdownNoBonusForActive}
               marginalTaxRateA={marginalTaxRateA}
               marginalTaxRateB={marginalTaxRateB}
               grossSalaryA={grossSalaryA}
@@ -673,6 +741,8 @@ export default function Home() {
               setIsProRata={setIsProRata}
               setProRataDays={setProRataDays}
               setCurrentPage={setCurrentPage}
+              viewingArticleId={viewingArticleId}
+              setViewingArticleId={setViewingArticleId}
             />
           )}
         </main>

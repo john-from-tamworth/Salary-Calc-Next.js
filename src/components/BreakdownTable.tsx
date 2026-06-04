@@ -1,14 +1,26 @@
 import { useState } from 'react';
 import { SalaryBreakdown } from '../types';
-import { Calendar, Clock, ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface BreakdownTableProps {
   breakdown: SalaryBreakdown;
   breakdownB?: SalaryBreakdown;
   compareMode?: boolean;
+  bonusFrequency?: 'monthly' | 'one-off';
+  breakdownNoBonus?: SalaryBreakdown;
 }
 
-export default function BreakdownTable({ breakdown, breakdownB, compareMode = false }: BreakdownTableProps) {
+interface BreakdownRow {
+  label: string;
+  key: string;
+  val: number;
+  valB?: number;
+  isHeader: boolean;
+  style: string;
+  formatter?: (val: number, period: string) => string;
+}
+
+export default function BreakdownTable({ breakdown, breakdownB, compareMode = false, bonusFrequency = 'monthly', breakdownNoBonus }: BreakdownTableProps) {
   const [dailyBasis, setDailyBasis] = useState<'working' | 'calendar'>('working');
   const [activePeriod, setActivePeriod] = useState<'yearly' | 'monthly' | 'weekly' | 'daily'>('monthly');
 
@@ -32,40 +44,10 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
   };
 
   const downloadSalaryCSV = () => {
-    let csvContent = "";
-    if (compareMode && breakdownB) {
-      const header = ['Category', 'Salary A', 'Salary B', 'Difference'];
-      const rows = [
-        ['Gross Salary', breakdown.gross, breakdownB.gross, breakdownB.gross - breakdown.gross],
-        ['Tax Due', breakdown.taxDue, breakdownB.taxDue, breakdownB.taxDue - breakdown.taxDue],
-        ['NI Due', breakdown.niDue, breakdownB.niDue, breakdownB.niDue - breakdown.niDue],
-        ['Student Loan', breakdown.studentLoanRepayment, breakdownB.studentLoanRepayment, breakdownB.studentLoanRepayment - breakdown.studentLoanRepayment],
-        ['Pension', breakdown.pensionContribution, breakdownB.pensionContribution, breakdownB.pensionContribution - breakdown.pensionContribution],
-        ['Take Home', breakdown.takeHome, breakdownB.takeHome, breakdownB.takeHome - breakdown.takeHome],
-      ];
-      csvContent = [header, ...rows.map(e => e.join(','))].join('\n');
-    } else {
-      const header = ['Category', 'Amount'];
-      const rows = [
-        ['Gross Salary', breakdown.gross],
-        ['Tax Due', breakdown.taxDue],
-        ['NI Due', breakdown.niDue],
-        ['Student Loan', breakdown.studentLoanRepayment],
-        ['Pension', breakdown.pensionContribution],
-        ['Take Home', breakdown.takeHome],
-      ];
-      csvContent = [header, ...rows.map(e => e.join(','))].join('\n');
-    }
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = compareMode ? 'salary_comparison.csv' : 'salary_breakdown.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    // ...
   };
 
-  const rows = [
+  const rows: BreakdownRow[] = [
     { label: 'Gross Salary', key: 'gross', val: breakdown.gross, valB: breakdownB?.gross ?? 0, isHeader: false, style: 'text-zinc-900 font-semibold' },
     { label: 'Pension Contribution', key: 'pension', val: breakdown.pensionContribution, valB: breakdownB?.pensionContribution ?? 0, isHeader: false, style: 'text-cyan-650 font-medium' },
     { label: 'Personal Allowance', key: 'allowance', val: breakdown.adjustedAllowance, valB: breakdownB?.adjustedAllowance ?? 0, isHeader: false, style: 'text-emerald-650 font-medium' },
@@ -73,6 +55,7 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
     { label: 'Income Tax', key: 'tax', val: breakdown.taxDue, valB: breakdownB?.taxDue ?? 0, isHeader: false, style: 'text-rose-600 font-medium' },
     { label: 'National Insurance', key: 'ni', val: breakdown.niDue, valB: breakdownB?.niDue ?? 0, isHeader: false, style: 'text-indigo-600 font-medium' },
     { label: 'Student Loan Repayment', key: 'loan', val: breakdown.studentLoanRepayment, valB: breakdownB?.studentLoanRepayment ?? 0, isHeader: false, style: 'text-amber-600 font-medium' },
+    { label: 'Other Non-Taxed Income', key: 'other-income', val: breakdown.otherNonTaxedIncome ?? 0, valB: breakdownB?.otherNonTaxedIncome ?? 0, isHeader: false, style: 'text-zinc-600 font-medium' },
     { label: 'Net Take-Home Pay', key: 'takehome', val: breakdown.takeHome, valB: breakdownB?.takeHome ?? 0, isHeader: true, style: 'text-emerald-700 bg-emerald-50/75 font-bold border-y border-emerald-100' },
   ];
 
@@ -146,12 +129,11 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {rows.map((row) => {
-                const diff = row.valB - row.val;
+                const diff = (row.valB ?? 0) - row.val;
                 const isPositiveBetter = row.key === 'gross' || row.key === 'pension' || row.key === 'allowance' || row.key === 'takehome';
                 const isBetter = isPositiveBetter ? diff > 0 : diff < 0;
                 const isSame = Math.abs(diff) < 0.01;
 
-                // Color of difference column
                 let diffStyle = 'text-zinc-500';
                 if (!isSame) {
                   if (row.key === 'taxable' || row.key === 'gross') {
@@ -175,7 +157,7 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
                       {format(row.val, activePeriod)}
                     </td>
                     <td className={`py-3 text-xs text-right pr-2 font-medium ${row.style} ${row.isHeader ? 'px-1' : ''}`}>
-                      {format(row.valB, activePeriod)}
+                      {format(row.valB ?? 0, activePeriod)}
                     </td>
                     <td className={`py-3 text-xs text-right ${diffStyle} ${row.isHeader ? 'px-3 rounded-r-xl' : ''}`}>
                       {isSame ? (
@@ -203,18 +185,17 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
 
         <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-100 flex items-start gap-2.5">
           <span className="text-xs text-emerald-800 font-medium leading-relaxed">
-            <strong>Key Insights:</strong> {((breakdownB.takeHome - breakdown.takeHome) > 0) ? (
-              <span>Your net take-home pay would increase by <strong>{format(breakdownB.takeHome - breakdown.takeHome, 'yearly')}</strong> per year with <strong>Salary B</strong>. Compare pension and Student Loans to ensure maximum retention.</span>
+            <strong>Key Insights:</strong> {(( (breakdownB?.takeHome ?? 0) - breakdown.takeHome) > 0) ? (
+              <span>Your net take-home pay would increase by <strong>{format((breakdownB?.takeHome ?? 0) - breakdown.takeHome, 'yearly')}</strong> per year with <strong>Salary B</strong>. Compare pension and Student Loans to ensure maximum retention.</span>
             ) : (
-              <span><strong>Salary B</strong> results in a cash shortfall of <strong>{format(breakdown.takeHome - breakdownB.takeHome, 'yearly')}</strong> per year in take-home pay. Check pension contributions or BiK.</span>
+              <span><strong>Salary B</strong> results in a cash shortfall of <strong>{format(breakdown.takeHome - (breakdownB?.takeHome ?? 0), 'yearly')}</strong> per year in take-home pay. Check pension contributions or BiK.</span>
             )}
           </span>
-        </div>
-      </div>
+        </div>      </div>
     );
   }
 
-  const rowsSingle = [
+  const rowsSingle: BreakdownRow[] = [
     { label: 'Gross Salary', key: 'gross', val: breakdown.gross, isHeader: false, style: 'text-zinc-900 font-semibold' },
     { label: 'Pension Contribution', key: 'pension', val: breakdown.pensionContribution, isHeader: false, style: 'text-cyan-600 font-medium' },
     { label: 'Personal Allowance', key: 'allowance', val: breakdown.adjustedAllowance, isHeader: false, style: 'text-emerald-600 font-medium' },
@@ -222,8 +203,33 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
     { label: 'Income Tax', key: 'tax', val: breakdown.taxDue, isHeader: false, style: 'text-rose-600 font-medium' },
     { label: 'National Insurance', key: 'ni', val: breakdown.niDue, isHeader: false, style: 'text-indigo-600 font-medium' },
     { label: 'Student Loan Repayment', key: 'loan', val: breakdown.studentLoanRepayment, isHeader: false, style: 'text-amber-600 font-medium' },
-    { label: 'Net Take-Home Pay', key: 'takehome', val: breakdown.takeHome, isHeader: true, style: 'text-emerald-700 bg-emerald-50/70 font-bold border-y border-emerald-100' },
+    { label: 'Other Non-Taxed Income', key: 'other-income', val: breakdown.otherNonTaxedIncome ?? 0, isHeader: false, style: 'text-zinc-600 font-medium' },
+    { label: 'Net Take-Home Pay (Annual)', key: 'takehome', val: breakdown.takeHome, isHeader: true, style: 'text-emerald-700 bg-emerald-50/70 font-bold border-y border-emerald-100' },
   ];
+
+  if (breakdownNoBonus && bonusFrequency && breakdown.bonus && breakdown.bonus > 0) {
+    if (bonusFrequency === 'monthly') {
+      rowsSingle.push({ label: 'Regular Net Pay (No Bonus)', key: 'reg-net', val: breakdownNoBonus.takeHome, isHeader: false, style: 'text-zinc-500 font-medium' });
+      rowsSingle.push({ label: 'Net Pay (With Bonus)', key: 'bonus-net', val: breakdown.takeHome, isHeader: false, style: 'text-emerald-600 font-bold' });
+    } else if (bonusFrequency === 'one-off') {
+      rowsSingle.push({ 
+        label: 'Regular Net Pay (Monthly)', 
+        key: 'reg-net', 
+        val: breakdownNoBonus.takeHome, 
+        isHeader: false, 
+        style: 'text-zinc-500 font-medium',
+        formatter: (val: number, period: any) => period === 'monthly' ? new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(val / 12) : '—'
+      });
+      rowsSingle.push({ 
+        label: 'Net Pay (Bonus Month)', 
+        key: 'bonus-net', 
+        val: (breakdownNoBonus.takeHome / 12) + (breakdown.takeHome - breakdownNoBonus.takeHome), 
+        isHeader: false, 
+        style: 'text-emerald-600 font-bold',
+        formatter: (val: number, period: any) => period === 'monthly' ? new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(val) : '—'
+      });
+    }
+  }
 
   return (
     <div className="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-sm space-y-4" id="breakdown-pay-table">
@@ -240,14 +246,11 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
           Download CSV
         </button>
 
-        {/* Daily basis toggling */}
         <div className="inline-flex rounded-xl bg-zinc-100 p-1 border border-zinc-250 self-start sm:self-center">
           <button
             onClick={() => setDailyBasis('working')}
             className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              dailyBasis === 'working'
-                ? 'bg-white text-zinc-950 shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-900'
+              dailyBasis === 'working' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -256,9 +259,7 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
           <button
             onClick={() => setDailyBasis('calendar')}
             className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              dailyBasis === 'calendar'
-                ? 'bg-white text-zinc-950 shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-900'
+              dailyBasis === 'calendar' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
@@ -290,16 +291,21 @@ export default function BreakdownTable({ breakdown, breakdownB, compareMode = fa
                   {row.label}
                 </td>
                 <td className={`py-3 text-xs text-right pr-1 ${row.style} ${row.isHeader ? 'px-1' : ''}`}>
-                  {format(row.val, 'yearly')}
+                  {row.formatter ? row.formatter(row.val, 'yearly') : format(row.val, 'yearly')}
                 </td>
                 <td className={`py-3 text-xs text-right pr-1 ${row.style} ${row.isHeader ? 'px-1' : ''}`}>
-                  {format(row.val, 'monthly')}
+                  {row.formatter ? row.formatter(row.val, 'monthly') : format(row.val, 'monthly')}
+                  {row.key === 'bonus-net' && bonusFrequency === 'one-off' && (
+                    <span className="text-emerald-600 ml-1 text-2xs">
+                      (+{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(breakdown.takeHome - (breakdownNoBonus?.takeHome ?? 0))})
+                    </span>
+                  )}
                 </td>
                 <td className={`py-3 text-xs text-right pr-1 ${row.style} ${row.isHeader ? 'px-1' : ''}`}>
-                  {format(row.val, 'weekly')}
+                  {row.formatter ? row.formatter(row.val, 'weekly') : format(row.val, 'weekly')}
                 </td>
                 <td className={`py-3 text-xs text-right ${row.style} ${row.isHeader ? 'px-3 rounded-r-xl' : ''}`}>
-                  {format(row.val, 'daily')}
+                  {row.formatter ? row.formatter(row.val, 'daily') : format(row.val, 'daily')}
                 </td>
               </tr>
             ))}

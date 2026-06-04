@@ -59,7 +59,7 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
     bonus = 0,
     overtime = 0,
     childcareVouchers = 0,
-    childBenefit = 0,
+    otherNonTaxedIncome = 0,
   } = inputs;
 
   const benefitsInKind = inputs.benefitsInKind || 0;
@@ -235,15 +235,12 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
   // Childcare vouchers reduce cash take home because they are sacrificed for vouchers
   netFromGross -= childcareVouchers;
 
-  // HICBC Charge
-  let hicbcCharge = 0;
-  if (childBenefit > 0 && adjustedNetIncome > 60000) {
-    const fraction = Math.min(1, Math.max(0, (adjustedNetIncome - 60000) / 20000));
-    hicbcCharge = childBenefit * fraction;
-  }
+  // Other Non-Taxed Income (Monthly input * 12)
+  const annualOtherNonTaxedIncome = otherNonTaxedIncome * 12;
+  const hicbcCharge = 0;
 
-  const takeHome = Math.max(0, netFromGross + childBenefit - hicbcCharge);
-  const grossBasisForRate = totalGross + childBenefit;
+  const takeHome = Math.max(0, netFromGross + annualOtherNonTaxedIncome - hicbcCharge);
+  const grossBasisForRate = totalGross + annualOtherNonTaxedIncome;
   const effectiveTaxRate = grossBasisForRate > 0 ? ((grossBasisForRate - takeHome) / grossBasisForRate) * 100 : 0;
 
   return {
@@ -260,7 +257,7 @@ export function calculateSalaryDetails(inputs: SalaryInputs): SalaryBreakdown {
     bonus,
     overtime,
     childcareVouchersDeduction: childcareVouchers,
-    childBenefitReceived: childBenefit,
+    otherNonTaxedIncome: annualOtherNonTaxedIncome,
     hicbcCharge,
   };
 }
