@@ -25,6 +25,10 @@ export default function Home() {
 
   // Core Calculator Input States (Scenario A)
   const [grossInputA, setGrossInputA] = useState<string>('33000');
+  const [isHourlyA, setIsHourlyA] = useState<boolean>(false);
+  const [hourlyRateA, setHourlyRateA] = useState<string>('0');
+  const [hoursPerWeekA, setHoursPerWeekA] = useState<string>('37.5');
+  const [weeksPerYearA, setWeeksPerYearA] = useState<string>('52');
   const [regionA, setRegionA] = useState<'UK' | 'Scotland'>('UK');
   const [pensionRateA, setPensionRateA] = useState<number>(0);
   const [pensionTypeA, setPensionTypeA] = useState<'salarySacrifice' | 'netPay' | 'reliefAtSource'>('salarySacrifice');
@@ -42,6 +46,10 @@ export default function Home() {
 
   // Core Calculator Input States (Scenario B)
   const [grossInputB, setGrossInputB] = useState<string>('33000');
+  const [isHourlyB, setIsHourlyB] = useState<boolean>(false);
+  const [hourlyRateB, setHourlyRateB] = useState<string>('0');
+  const [hoursPerWeekB, setHoursPerWeekB] = useState<string>('37.5');
+  const [weeksPerYearB, setWeeksPerYearB] = useState<string>('52');
   const [regionB, setRegionB] = useState<'UK' | 'Scotland'>('UK');
   const [pensionRateB, setPensionRateB] = useState<number>(0);
   const [pensionTypeB, setPensionTypeB] = useState<'salarySacrifice' | 'netPay' | 'reliefAtSource'>('salarySacrifice');
@@ -62,6 +70,12 @@ export default function Home() {
   const [activeScenarioFlow, setActiveScenarioFlow] = useState<'A' | 'B'>('A');
   const [editingScenario, setEditingScenario] = useState<'A' | 'B'>('A');
 
+  // Pro-rata states
+  const [isProRataA, setIsProRataA] = useState<boolean>(false);
+  const [proRataDaysA, setProRataDaysA] = useState<number>(4);
+  const [isProRataB, setIsProRataB] = useState<boolean>(false);
+  const [proRataDaysB, setProRataDaysB] = useState<number>(4);
+
   // Shared Budget & Expenses Log State with Custom Categories
   const [expenses, setExpenses] = useState<ExpenseItem[]>([
     { id: '1', name: 'Rent or Mortgage', amount: 800, category: 'mortgage_rent' },
@@ -76,14 +90,30 @@ export default function Home() {
 
   // Derived numeric salary inputs
   const grossSalaryA = useMemo(() => {
+    if (isHourlyA) {
+      const rate = parseFloat(hourlyRateA) || 0;
+      const hours = parseFloat(hoursPerWeekA) || 0;
+      const weeks = parseFloat(weeksPerYearA) || 0;
+      const annual = rate * hours * weeks;
+      return isProRataA ? annual * (proRataDaysA / 5) : annual;
+    }
     const parsed = parseFloat(grossInputA);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [grossInputA]);
+    const base = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    return isProRataA ? base * (proRataDaysA / 5) : base;
+  }, [grossInputA, isHourlyA, hourlyRateA, hoursPerWeekA, weeksPerYearA, isProRataA, proRataDaysA]);
 
   const grossSalaryB = useMemo(() => {
+    if (isHourlyB) {
+      const rate = parseFloat(hourlyRateB) || 0;
+      const hours = parseFloat(hoursPerWeekB) || 0;
+      const weeks = parseFloat(weeksPerYearB) || 0;
+      const annual = rate * hours * weeks;
+      return isProRataB ? annual * (proRataDaysB / 5) : annual;
+    }
     const parsed = parseFloat(grossInputB);
-    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
-  }, [grossInputB]);
+    const base = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    return isProRataB ? base * (proRataDaysB / 5) : base;
+  }, [grossInputB, isHourlyB, hourlyRateB, hoursPerWeekB, weeksPerYearB, isProRataB, proRataDaysB]);
 
   const bonusA = useMemo(() => {
     const parsed = parseFloat(bonusInputA);
@@ -211,6 +241,10 @@ export default function Home() {
   const salaryInputsA: SalaryInputs = useMemo(() => {
     return {
       grossSalary: grossSalaryA,
+      isHourly: isHourlyA,
+      hourlyRate: parseFloat(hourlyRateA) || 0,
+      hoursPerWeek: parseFloat(hoursPerWeekA) || 0,
+      weeksPerYear: parseFloat(weeksPerYearA) || 0,
       region: regionA,
       pensionRate: pensionRateA,
       pensionType: pensionTypeA,
@@ -227,7 +261,7 @@ export default function Home() {
       childBenefit: childBenefitA,
     };
   }, [
-    grossSalaryA, regionA, pensionRateA, pensionTypeA, pensionOnA,
+    grossSalaryA, isHourlyA, hourlyRateA, hoursPerWeekA, weeksPerYearA, regionA, pensionRateA, pensionTypeA, pensionOnA,
     studentLoanPlansA, taxCodeA, customTaxCodeA, blindAllowanceA, marriageAllowanceModeA, benefitsInKindA,
     bonusA, overtimeA, childcareA, childBenefitA
   ]);
@@ -235,6 +269,10 @@ export default function Home() {
   const salaryInputsB: SalaryInputs = useMemo(() => {
     return {
       grossSalary: grossSalaryB,
+      isHourly: isHourlyB,
+      hourlyRate: parseFloat(hourlyRateB) || 0,
+      hoursPerWeek: parseFloat(hoursPerWeekB) || 0,
+      weeksPerYear: parseFloat(weeksPerYearB) || 0,
       region: regionB,
       pensionRate: pensionRateB,
       pensionType: pensionTypeB,
@@ -251,10 +289,45 @@ export default function Home() {
       childBenefit: childBenefitB,
     };
   }, [
-    grossSalaryB, regionB, pensionRateB, pensionTypeB, pensionOnB,
+    grossSalaryB, isHourlyB, hourlyRateB, hoursPerWeekB, weeksPerYearB, regionB, pensionRateB, pensionTypeB, pensionOnB,
     studentLoanPlansB, taxCodeB, customTaxCodeB, blindAllowanceB, marriageAllowanceModeB, benefitsInKindB,
     bonusB, overtimeB, childcareB, childBenefitB
   ]);
+
+  // Read targets for currently edited scenario
+  const isProRata = editingScenario === 'A' ? isProRataA : isProRataB;
+  const proRataDays = editingScenario === 'A' ? proRataDaysA : proRataDaysB;
+
+  // Setters routing dynamically
+  const setIsProRata = (val: boolean) => {
+    if (editingScenario === 'B') setIsProRataB(val);
+    else setIsProRataA(val);
+  };
+  const setProRataDays = (val: number) => {
+    if (editingScenario === 'B') setProRataDaysB(val);
+    else setProRataDaysA(val);
+  };
+
+  const isHourly = editingScenario === 'A' ? isHourlyA : isHourlyB;
+  const setIsHourly = (val: boolean) => {
+    if (editingScenario === 'B') setIsHourlyB(val);
+    else setIsHourlyA(val);
+  };
+  const hourlyRate = editingScenario === 'A' ? hourlyRateA : hourlyRateB;
+  const setHourlyRate = (val: string) => {
+    if (editingScenario === 'B') setHourlyRateB(val);
+    else setHourlyRateA(val);
+  };
+  const hoursPerWeek = editingScenario === 'A' ? hoursPerWeekA : hoursPerWeekB;
+  const setHoursPerWeek = (val: string) => {
+    if (editingScenario === 'B') setHoursPerWeekB(val);
+    else setHoursPerWeekA(val);
+  };
+  const weeksPerYear = editingScenario === 'A' ? weeksPerYearA : weeksPerYearB;
+  const setWeeksPerYear = (val: string) => {
+    if (editingScenario === 'B') setWeeksPerYearB(val);
+    else setWeeksPerYearA(val);
+  };
 
   // Execute tax calculations dynamically
   const breakdownA = useMemo(() => calculateSalaryDetails(salaryInputsA), [salaryInputsA]);
@@ -286,6 +359,54 @@ export default function Home() {
     } else {
       setEditingScenario('A');
     }
+  };
+
+  const resetAll = () => {
+    setGrossInputA('33000');
+    setGrossInputB('33000');
+    setIsHourlyA(false);
+    setIsHourlyB(false);
+    setHourlyRateA('0');
+    setHourlyRateB('0');
+    setHoursPerWeekA('37.5');
+    setHoursPerWeekB('37.5');
+    setWeeksPerYearA('52');
+    setWeeksPerYearB('52');
+    setRegionA('UK');
+    setRegionB('UK');
+    setPensionRateA(0);
+    setPensionRateB(0);
+    setPensionTypeA('salarySacrifice');
+    setPensionTypeB('salarySacrifice');
+    setPensionOnA('total');
+    setPensionOnB('total');
+    setStudentLoanPlansA([]);
+    setStudentLoanPlansB([]);
+    setCustomTaxCodeA(false);
+    setCustomTaxCodeB(false);
+    setTaxCodeA('1257L');
+    setTaxCodeB('1257L');
+    setBlindAllowanceA(false);
+    setBlindAllowanceB(false);
+    setMarriageAllowanceModeA('none');
+    setMarriageAllowanceModeB('none');
+    setBenefitsInKindA(0);
+    setBenefitsInKindB(0);
+    setBonusInputA('0');
+    setBonusInputB('0');
+    setOvertimeInputA('0');
+    setOvertimeInputB('0');
+    setChildcareInputA('0');
+    setChildcareInputB('0');
+    setChildBenefitInputA('0');
+    setChildBenefitInputB('0');
+    setCompareMode(false);
+    setEditingScenario('A');
+    setActiveScenarioFlow('A');
+    setIsProRataA(false);
+    setIsProRataB(false);
+    setProRataDaysA(4);
+    setProRataDaysB(4);
   };
 
   // Synchronise active region standard code
@@ -462,6 +583,19 @@ export default function Home() {
               setIsTaxCodesOpen={setIsTaxCodesOpen}
               isStudentLoansOpen={isStudentLoansOpen}
               setIsStudentLoansOpen={setIsStudentLoansOpen}
+              isProRata={isProRata}
+              setIsProRata={setIsProRata}
+              proRataDays={proRataDays}
+              setProRataDays={setProRataDays}
+              
+              isHourly={isHourly}
+              setIsHourly={setIsHourly}
+              hourlyRate={hourlyRate}
+              setHourlyRate={setHourlyRate}
+              hoursPerWeek={hoursPerWeek}
+              setHoursPerWeek={setHoursPerWeek}
+              weeksPerYear={weeksPerYear}
+              setWeeksPerYear={setWeeksPerYear}
               
               benefitsInKind={benefitsInKind}
               setBenefitsInKind={setBenefitsInKind}
@@ -489,6 +623,7 @@ export default function Home() {
               pensionRateB={pensionRateB}
               setPensionRateA={setPensionRateA}
               setPensionRateB={setPensionRateB}
+              resetAll={resetAll}
             />
           )}
 
@@ -527,11 +662,16 @@ export default function Home() {
 
           {currentPage === 'blog' && (
             <Blog
-              setGrossInput={setGrossInput}
+              setGrossInputA={setGrossInputA}
+              setGrossInputB={setGrossInputB}
+              setCompareMode={setCompareMode}
+              setEditingScenario={setEditingScenario}
               setPensionRate={setPensionRate}
               setPensionType={setPensionType}
               toggleStudentLoan={toggleStudentLoan}
               setStudentLoanPlans={setStudentLoanPlans}
+              setIsProRata={setIsProRata}
+              setProRataDays={setProRataDays}
               setCurrentPage={setCurrentPage}
             />
           )}

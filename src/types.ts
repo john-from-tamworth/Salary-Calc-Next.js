@@ -1,5 +1,9 @@
 export interface SalaryInputs {
   grossSalary: number;
+  isHourly: boolean;
+  hourlyRate: number;
+  hoursPerWeek: number;
+  weeksPerYear: number;
   region: 'UK' | 'Scotland';
   pensionRate: number;
   pensionType: 'salarySacrifice' | 'netPay' | 'reliefAtSource';

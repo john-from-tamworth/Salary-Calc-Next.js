@@ -1,7 +1,6 @@
 import './globals.css';
 import { Metadata } from 'next';
 import { ReactNode } from 'react';
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'UK & Scotland Salary & Budget Calculator',
@@ -17,12 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Traditional, plain HTML script tag so the AdSense crawler doesn't panic */}
-        <script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4604731432144657" 
-          crossOrigin="anonymous"
-        ></script>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4604731432144657" crossOrigin="anonymous"></script>
       </head>
       <body className="antialiased bg-zinc-50/50 text-zinc-900 min-h-screen">
         {children}

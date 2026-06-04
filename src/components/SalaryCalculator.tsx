@@ -18,7 +18,8 @@ import {
   TrendingUp,
   AlertTriangle,
   HeartCrack,
-  Coins
+  Coins,
+  RotateCcw
 } from 'lucide-react';
 
 interface SalaryCalculatorProps {
@@ -42,6 +43,20 @@ interface SalaryCalculatorProps {
   setBlindAllowance: (blind: boolean) => void;
   marriageAllowanceMode: 'none' | 'receive' | 'transfer';
   setMarriageAllowanceMode: (mode: 'none' | 'receive' | 'transfer') => void;
+
+  isProRata: boolean;
+  setIsProRata: (val: boolean) => void;
+  proRataDays: number;
+  setProRataDays: (val: number) => void;
+
+  isHourly: boolean;
+  setIsHourly: (val: boolean) => void;
+  hourlyRate: string;
+  setHourlyRate: (val: string) => void;
+  hoursPerWeek: string;
+  setHoursPerWeek: (val: string) => void;
+  weeksPerYear: string;
+  setWeeksPerYear: (val: string) => void;
 
   grossSalary: number;
   salaryInputs: SalaryInputs;
@@ -90,6 +105,7 @@ interface SalaryCalculatorProps {
   pensionRateB?: number;
   setPensionRateA?: (val: number) => void;
   setPensionRateB?: (val: number) => void;
+  resetAll?: () => void;
 }
 
 export default function SalaryCalculator({
@@ -113,6 +129,19 @@ export default function SalaryCalculator({
   setBlindAllowance,
   marriageAllowanceMode,
   setMarriageAllowanceMode,
+  isProRata,
+  setIsProRata,
+  proRataDays,
+  setProRataDays,
+
+  isHourly,
+  setIsHourly,
+  hourlyRate,
+  setHourlyRate,
+  hoursPerWeek,
+  setHoursPerWeek,
+  weeksPerYear,
+  setWeeksPerYear,
 
   grossSalary,
   salaryInputs,
@@ -159,7 +188,8 @@ export default function SalaryCalculator({
   pensionRateA = 5,
   pensionRateB = 5,
   setPensionRateA = () => {},
-  setPensionRateB = () => {}
+  setPensionRateB = () => {},
+  resetAll = () => {}
 }: SalaryCalculatorProps) {
 
   // Dynamic live advisor alerts calculations
@@ -326,11 +356,14 @@ export default function SalaryCalculator({
           <h2 className="text-xl font-black text-zinc-950 mt-1.5 flex items-center gap-2">
             NetPayFlow Salary Workspace
           </h2>
-          <p className="text-sm text-zinc-600 mt-2 bg-zinc-100 p-3 rounded-lg">
-            In NetPayFlow, your Net Pay feeds your budget planner. Your budget planner uncovers a surplus, and your surplus accelerates your savings compounds or pays off your mortgage decades early. 
-            <br/><br/>
-            Toggle <strong className='text-zinc-900'>Compare Salary A & B</strong> to analyze two different salary scenarios. Once activated, the "Flow scenario" allows you to choose which resulting Net Pay feeds your planner.
-          </p>
+          <div className="space-y-4 text-zinc-700 mt-2 bg-zinc-100 p-3 rounded-lg leading-relaxed text-sm">
+            <p>
+              <strong>Follow your money’s flow.</strong> In NetPayFlow, your Net Pay flows directly into your Budget Planner, uncovering a monthly surplus that then flows forward to accelerate your savings or crush your mortgage decades early.
+            </p>
+            <p>
+              Use the <strong>Compare A/B</strong> toggle for an instant <strong>wage comparison</strong>. Whether you are testing new job offers, calculating part-time <strong>pro rata pay</strong>, or checking <strong>hourly pay</strong> rates, simply choose your strongest scenario and watch your new income flow through the rest of your plan.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
@@ -387,6 +420,19 @@ export default function SalaryCalculator({
         </div>
       )}
 
+      {/* Reset Button (Always Visible) */}
+      <div className="flex justify-end max-w-xl mt-2">
+        <button
+          onClick={() => resetAll()}
+          className="px-3.5 py-2 rounded-xl border bg-white border-zinc-200 text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+          id="btn-salary-reset"
+          title="Reset all calculator inputs to default settings"
+        >
+          <RotateCcw className="w-4 h-4 text-emerald-500" />
+          <span>Reset Calculator</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN: CONTROLS & PARAMS */}
         <div className="lg:col-span-5 space-y-6 bg-white border border-zinc-250 p-5 sm:p-6 rounded-2xl shadow-sm" id="calculator-inputs-panel">
@@ -406,67 +452,109 @@ export default function SalaryCalculator({
             )}
           </div>
 
-          {/* 1. Annual Gross Salary Input */}
+          {/* 1. Annual Gross Salary Input - Toggle */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-extrabold text-zinc-800 animate-pulse-subtle" htmlFor="salary-amount-input">
-                Annual Gross Salary
-              </label>
-              
-              {/* Compare Toggle Switch moved directly inside the Annual Salary box */}
-              <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 shadow-3xs px-2.5 py-1 rounded-lg">
-                <label className="text-[10px] font-extrabold text-zinc-600 cursor-pointer select-none" htmlFor="compare-toggle-input">
-                  Compare Salary A & B
-                </label>
-                <button
-                  id="compare-toggle-input"
-                  type="button"
-                  onClick={toggleCompareMode}
-                  className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-205 ease-in-out focus:outline-none ${
-                    compareMode ? 'bg-zinc-900' : 'bg-zinc-200'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition duration-205 ease-in-out ${
-                      compareMode ? 'translate-x-3' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">£</span>
-              <input
-                id="salary-amount-input"
-                type="number"
-                min="0"
-                max="10000000"
-                step="500"
-                value={grossInput}
-                onChange={e => setGrossInput(e.target.value)}
-                className="w-full text-base pl-8 pr-12 py-3 bg-zinc-55 border border-zinc-200 rounded-xl font-bold focus:border-zinc-450 focus:bg-white focus:outline-none transition-all"
-                placeholder="e.g. 50000"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">/ yr</span>
+            <div className="flex gap-2 bg-zinc-50 border border-zinc-200 shadow-3xs p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setIsHourly(false)}
+                className={`flex-1 cursor-pointer py-1.5 rounded-lg text-xs font-black transition-all ${
+                  !isHourly ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-500'
+                }`}
+              >
+                Annual
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsHourly(true)}
+                className={`flex-1 cursor-pointer py-1.5 rounded-lg text-xs font-black transition-all ${
+                  isHourly ? 'bg-white text-zinc-900 shadow-xs' : 'text-zinc-500'
+                }`}
+              >
+                Hourly
+              </button>
             </div>
 
-            {/* Range Slider for Scrubbing - Replaced +- 1000 buttons */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between items-center text-[10px] text-zinc-400 font-bold">
-                <span>£10,000</span>
-                <span>£250,000+</span>
-              </div>
-              <input
-                type="range"
-                min="10000"
-                max="250000"
-                step="1000"
-                value={grossSalary || 10000}
-                onChange={e => setGrossInput(e.target.value)}
-                className="w-full h-1.5 accent-zinc-950 bg-zinc-150 rounded-lg cursor-pointer"
-              />
-            </div>
+            {!isHourly ? (
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-extrabold text-zinc-800 animate-pulse-subtle" htmlFor="salary-amount-input">
+                        Annual Gross Salary
+                        </label>
+                        
+                        {/* Compare Toggle Switch moved directly inside the Annual Salary box */}
+                        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 shadow-3xs px-2.5 py-1 rounded-lg">
+                        <label className="text-[10px] font-extrabold text-zinc-600 cursor-pointer select-none" htmlFor="compare-toggle-input">
+                            Compare Salary A & B
+                        </label>
+                        <button
+                            id="compare-toggle-input"
+                            type="button"
+                            onClick={toggleCompareMode}
+                            className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-205 ease-in-out focus:outline-none ${
+                            compareMode ? 'bg-zinc-900' : 'bg-zinc-200'
+                            }`}
+                        >
+                            <span
+                            className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition duration-205 ease-in-out ${
+                                compareMode ? 'translate-x-3' : 'translate-x-0'
+                            }`}
+                            />
+                        </button>
+                        </div>
+                    </div>
+                    
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-bold">£</span>
+                        <input
+                        id="salary-amount-input"
+                        type="number"
+                        min="0"
+                        max="10000000"
+                        step="500"
+                        value={grossInput}
+                        onChange={e => setGrossInput(e.target.value)}
+                        className="w-full text-base pl-8 pr-12 py-3 bg-zinc-55 border border-zinc-200 rounded-xl font-bold focus:border-zinc-450 focus:bg-white focus:outline-none transition-all"
+                        placeholder="e.g. 50000"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">/ yr</span>
+                    </div>
+
+                    {/* Range Slider for Scrubbing - Replaced +- 1000 buttons */}
+                    <div className="space-y-1.5 pt-1">
+                        <div className="flex justify-between items-center text-[10px] text-zinc-400 font-bold">
+                        <span>£10,000</span>
+                        <span>£250,000+</span>
+                        </div>
+                        <input
+                        type="range"
+                        min="10000"
+                        max="250000"
+                        step="1000"
+                        value={grossSalary || 10000}
+                        onChange={e => setGrossInput(e.target.value)}
+                        className="w-full h-1.5 accent-zinc-950 bg-zinc-150 rounded-lg cursor-pointer"
+                        />
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-1">
+                            <label className="text-xs font-extrabold text-zinc-800" htmlFor="hourly-rate-input">Rate</label>
+                            <input id="hourly-rate-input" type="number" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs" />
+                        </div>
+                        <div className="col-span-1">
+                            <label className="text-xs font-extrabold text-zinc-800" htmlFor="hours-per-week-input">Hrs/Wk</label>
+                            <input id="hours-per-week-input" type="number" value={hoursPerWeek} onChange={e => setHoursPerWeek(e.target.value)} className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs" />
+                        </div>
+                        <div className="col-span-1">
+                            <label className="text-xs font-extrabold text-zinc-800" htmlFor="weeks-per-year-input">Wks/Yr</label>
+                            <input id="weeks-per-year-input" type="number" value={weeksPerYear} onChange={e => setWeeksPerYear(e.target.value)} className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs" />
+                        </div>
+                    </div>
+                </div>
+            )}
           </div>
 
           {/* Dynamic Smart Tax Alert & Auto-Deductions optimization (Advisor Box) */}
@@ -691,6 +779,48 @@ export default function SalaryCalculator({
                     </button>
                   );
                 })}
+              </div>
+            )}
+          </div>
+
+          {/* Pro-Rata Calculator */}
+          <div className="border-t border-zinc-100 pt-3">
+            <div className="flex items-center justify-between py-2">
+              <label className="text-xs font-bold text-zinc-700 flex items-center gap-1.5">
+                Pro-rata Salary
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsProRata(!isProRata)}
+                className={`cursor-pointer w-9 h-5 rounded-full p-0.5 transition-colors duration-205 focus:outline-none ${
+                  isProRata ? 'bg-zinc-900' : 'bg-zinc-200'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isProRata ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
+
+            {isProRata && (
+              <div className="space-y-4 pt-3 transition-all duration-350 p-3.5 border border-zinc-150 rounded-xl bg-zinc-50 bg-opacity-40">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-800 flex justify-between items-center" htmlFor="pro-rata-days-input">
+                    <span>Days per Week Worked</span>
+                    <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100 px-1.5 rounded">{proRataDays} days</span>
+                  </label>
+                  <input
+                    id="pro-rata-days-input"
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="0.5"
+                    value={proRataDays}
+                    onChange={e => setProRataDays(parseFloat(e.target.value))}
+                    className="w-full h-1.5 accent-zinc-950 bg-zinc-150 rounded-lg cursor-pointer"
+                  />
+                  <p className="text-[10px] text-zinc-500">
+                    Your gross salary is pro-rated based on a {proRataDays}-day week out of a full-time 5-day week.
+                  </p>
+                </div>
               </div>
             )}
           </div>
