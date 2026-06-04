@@ -1,6 +1,7 @@
 import './globals.css';
 import { Metadata } from 'next';
 import { ReactNode } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'UK & Scotland Salary & Budget Calculator',
@@ -20,6 +21,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-zinc-50/50 text-zinc-900 min-h-screen">
         {children}
+        <Analytics />
       </body>
     </html>
   );
