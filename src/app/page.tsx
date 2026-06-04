@@ -15,6 +15,9 @@ import BudgetPlanner from '../components/BudgetPlanner';
 import SavingsCompounder from '../components/SavingsCompounder';
 import DebtOverpayment from '../components/DebtOverpayment';
 import Blog from '../components/Blog';
+import ToolNavigation from '../components/ToolNavigation';
+import InfoSection from '../components/InfoSection';
+import { ArrowLeft, ArrowRight, Calculator, PiggyBank, TrendingUp, CreditCard } from 'lucide-react';
 import { calculateSalaryDetails, getMarginalTaxRate, parseTaxCode } from '../calculator';
 import { SalaryInputs, ExpenseItem } from '../types';
 
@@ -537,6 +540,7 @@ export default function Home() {
       setViewingArticleId(null); 
     }
     setCurrentPage(page);
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -604,6 +608,7 @@ export default function Home() {
 
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
           {currentPage === 'salary-calculator' && (
+            <div>
               <SalaryCalculator
               grossInput={grossInput}
               setGrossInput={setGrossInput}
@@ -693,39 +698,81 @@ export default function Home() {
               setPensionRateB={setPensionRateB}
               resetAll={resetAll}
             />
+              <ToolNavigation 
+                nextPage={{ path: 'budget-planner', label: 'Budget Planner', icon: PiggyBank }}
+                setCurrentPage={setCurrentPage}
+              />
+            </div>
           )}
 
           {currentPage === 'budget-planner' && (
-            <BudgetPlanner
-              monthlyTakeHomeA={breakdownA.takeHome / 12}
-              monthlyTakeHomeB={breakdownB.takeHome / 12}
-              incomeSource={incomeSource}
-              setIncomeSource={setIncomeSource}
-              customIncomeInput={customIncomeInput}
-              setCustomIncomeInput={setCustomIncomeInput}
-              selectedIncomeAmount={selectedIncomeAmount}
-              allocatedSavings={allocatedSavings}
-              setAllocatedSavings={setAllocatedSavings}
-              expenses={expenses}
-              setExpenses={setExpenses}
-              formatGBP={formatGBP}
-            />
+            <div>
+              <BudgetPlanner
+                monthlyTakeHomeA={breakdownA.takeHome / 12}
+                monthlyTakeHomeB={breakdownB.takeHome / 12}
+                incomeSource={incomeSource}
+                setIncomeSource={setIncomeSource}
+                customIncomeInput={customIncomeInput}
+                setCustomIncomeInput={setCustomIncomeInput}
+                selectedIncomeAmount={selectedIncomeAmount}
+                allocatedSavings={allocatedSavings}
+                setAllocatedSavings={setAllocatedSavings}
+                expenses={expenses}
+                setExpenses={setExpenses}
+                formatGBP={formatGBP}
+              />
+              <ToolNavigation 
+                previousPage={{ path: 'salary-calculator', label: 'Salary Calculator', icon: Calculator }}
+                nextPage={{ path: 'savings-compounder', label: 'Savings Compounder', icon: TrendingUp }}
+                setCurrentPage={setCurrentPage}
+              />
+              <div className="flex justify-start mt-2">
+                <button
+                    onClick={() => setCurrentPage('debt-overpayment')}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition"
+                >
+                    Or skip to Debt Overpayment
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
 
           {currentPage === 'savings-compounder' && (
-            <SavingsCompounder
-              monthlySurplus={monthlySurplus}
-              allocatedSavings={allocatedSavings}
-              formatGBP={formatGBP}
-            />
+            <div>
+              <SavingsCompounder
+                monthlySurplus={monthlySurplus}
+                allocatedSavings={allocatedSavings}
+                formatGBP={formatGBP}
+              />
+              <ToolNavigation 
+                previousPage={{ path: 'budget-planner', label: 'Budget Planner', icon: PiggyBank }}
+                setCurrentPage={setCurrentPage}
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                    onClick={() => setCurrentPage('debt-overpayment')}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition"
+                >
+                    Continue to Debt Overpayment
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           )}
 
           {currentPage === 'debt-overpayment' && (
-            <DebtOverpayment
-              monthlySurplus={monthlySurplus}
-              allocatedSavings={allocatedSavings}
-              formatGBP={formatGBP}
-            />
+            <div>
+              <DebtOverpayment
+                monthlySurplus={monthlySurplus}
+                allocatedSavings={allocatedSavings}
+                formatGBP={formatGBP}
+              />
+              <ToolNavigation 
+                previousPage={{ path: 'savings-compounder', label: 'Savings Compounder', icon: TrendingUp }}
+                setCurrentPage={setCurrentPage}
+              />
+            </div>
           )}
 
           {currentPage === 'blog' && (
@@ -745,6 +792,7 @@ export default function Home() {
               setViewingArticleId={setViewingArticleId}
             />
           )}
+          <InfoSection />
         </main>
 
         {/* Global Compliance / HMRC Disclaimer */}
@@ -756,7 +804,7 @@ export default function Home() {
             <button onClick={() => setShowTerms(true)} className="hover:text-zinc-900 underline ml-3">Terms of Service</button>
           </p>
           <p className="mt-1 leading-relaxed">
-            HMRC Calculations represent a high-fidelity estimation for the 2025/26 income tax bands, National Insurance thresholds, and student repayment models. Consistently test options to optimize tax-efficiency.
+            HMRC Calculations represent a high-fidelity estimation for the 2026/27 income tax bands, National Insurance thresholds, and student repayment models. Consistently test options to optimize tax-efficiency.
           </p>
         </footer>
         {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}

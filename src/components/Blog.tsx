@@ -7,6 +7,8 @@ import BlogEmbeddableBudgetPlanner from './BlogEmbeddableBudgetPlanner';
 import BlogEmbeddableSavingsCompounder from './BlogEmbeddableSavingsCompounder';
 import BlogEmbeddableDebtOverpayment from './BlogEmbeddableDebtOverpayment';
 import BlogEmbeddableProRataSlider from './BlogEmbeddableProRataSlider';
+import TaxTrapBlog from './TaxTrapBlog';
+import ProRataBlog from './ProRataBlog';
 
 interface BlogProps {
   // Callbacks to preset values in other pages
@@ -157,51 +159,32 @@ export default function Blog({
         'You can dodge this trap entirely by using Salary Sacrifice to boost your pension, bringing your taxable income back to safety.'
       ],
       fullContent: (
-        <div className="space-y-6 text-zinc-700 leading-relaxed text-sm">
-          <p>
-            Hitting a six-figure salary is a massive milestone, but in the UK, it comes with a frustrating catch. Welcome to the infamous <strong>£100k Tax Trap</strong>. If your adjusted net income lands anywhere between £100,000 and £125,140, you are effectively paying a massive 60% marginal tax rate on that slice of your earnings. 
-          </p>
-
-          <h3 className="text-lg font-semibold text-zinc-900 mt-6">How the 60% Tax Trap Actually Works</h3>
-          <BlogEmbeddableBreakdown grossSalary={115000} />
-          <p>
-            Let’s break down exactly what is happening behind the scenes. Everyone in the UK generally gets a Personal Allowance—the first £12,570 you earn completely tax-free. However, the moment your income crosses the £100,000 threshold, HMRC starts taking that allowance back.
-          </p>
-          <p>
-            For every <strong>£2</strong> you earn over £100k, you lose <strong>£1</strong> of your tax-free allowance. 
-          </p>
-          <p>
-            Because you are now paying standard 40% higher-rate tax on the new money you earned, <em>plus</em> paying 40% on the portion of your allowance you just lost, it creates an effective 60% marginal tax rate. Earn a £1,000 bonus? You might only see £400 of it in your bank account.
-          </p>
-
-          <h3 className="text-lg font-semibold text-zinc-900 mt-6">The Solution: Beat the Trap with NetPayFlow</h3>
-          <p>
-            The math sounds brutal, but there is a fully legal, highly effective way to bypass it: <strong>Salary Sacrifice pension contributions</strong>. By moving that heavily-taxed money directly into your pension, you lower your official "adjusted net income" back to £100,000, instantly reclaiming your lost tax-free allowance.
-          </p>
-          
-          <p>
-            Here is how you can use <strong>NetPayFlow</strong> to fix this right now:
-          </p>
-
-          <ul className="list-disc pl-5 space-y-3 mt-2">
-            <li>
-              <strong>1. Spot the Trap in the Salary Calculator:</strong> Hit the simulation button on this article to load £115,000 into the Salary Calculator. Keep an eye out for our dynamic threshold warning—it will instantly flag that your Personal Allowance is draining. Simply click our one-button "Safe Pension Contribution" fix to automatically calculate the exact sacrifice needed to drop your tax bill.
-            </li>
-            <li>
-              <strong>2. Flow into the Budget Planner:</strong> Once you have optimized your take-home pay, let that new, tax-efficient number <em>flow</em> straight into your Budget Planner. Map out your monthly living costs to reveal your true <strong>Surplus Cash</strong>.
-            </li>
-            <li>
-              <strong>3. Target Your Wealth:</strong> You don't have to lock all your extra money away. Use the slider in the Budget Planner to choose a comfortable "Target" amount.
-            </li>
-            <li>
-              <strong>4. Compound and Conquer:</strong> Let your targeted surplus flow directly into the Savings Compound or Debt Overpayment calculators. See exactly how your tax savings can crush your mortgage years early or compound into a massive ISA portfolio over the next decade.
-            </li>
-          </ul>
-
-          <p className="mt-6">
-            Don't let HMRC keep 60% of your hard-earned pay rise. Start at the Salary Calculator, apply your pension fix, and watch your money flow efficiently toward your actual financial goals.
-          </p>
-        </div>
+        <TaxTrapBlog />
+      )
+    },
+    {
+      id: 'pro-rata-salary',
+      title: 'Pro-Rata Salary Explained: How Going Part-Time Affects Your Pay',
+      category: 'Career Finance',
+      readTime: '3 min read',
+      summary: 'Thinking about dropping a day at work? Discover how to accurately calculate your pro rata take-home pay, and why working 20% fewer hours usually means losing much less than 20% of your net income.',
+      difficulty: 'Beginner',
+      iconUrl: Clock,
+      bgGradient: 'from-blue-50 to-sky-50/20 border-blue-200/60',
+      actionText: 'Simulate a 3-Day Work Week',
+      onClickPreset: () => {
+        setGrossInputA('45000');
+        setIsProRata(true);
+        setProRataDays(3);
+        setCurrentPage('salary-calculator');
+      },
+      bullets: [
+        '"Pro rata" simply means "in proportion." If you work 3 days out of a standard 5-day week, your gross salary is prorated to 60%.',
+        'Dropping your hours by 20% does NOT mean your take-home pay drops by 20%. Because of the UK\'s £12,570 tax-free Personal Allowance, part-time work is incredibly tax-efficient.',
+        'Use our interactive slider to instantly visualize how changing your working days impacts your National Insurance, Income Tax, and final monthly budget.'
+      ],
+      fullContent: (
+        <ProRataBlog />
       )
     },
     {
@@ -276,74 +259,6 @@ export default function Blog({
 
           <p className="mt-6">
             Use the tool above to add your extra monthly contribution. Watch the graph and the summary boxes update in real-time to show exactly how many years you can knock off your mortgage or loan, and the thousands of pounds in interest you'll save just by staying the course.
-          </p>
-        </div>
-      )
-    },
-    {
-      id: 'pro-rata-salary',
-      title: 'Pro-Rata Salary Explained: How Going Part-Time Affects Your Pay',
-      category: 'Career Finance',
-      readTime: '3 min read',
-      summary: 'Thinking about dropping a day at work? Discover how to accurately calculate your pro rata take-home pay, and why working 20% fewer hours usually means losing much less than 20% of your net income.',
-      difficulty: 'Beginner',
-      iconUrl: Clock,
-      bgGradient: 'from-blue-50 to-sky-50/20 border-blue-200/60',
-      actionText: 'Simulate a 3-Day Work Week',
-      onClickPreset: () => {
-        setGrossInputA('45000');
-        setIsProRata(true);
-        setProRataDays(3);
-        setCurrentPage('salary-calculator');
-      },
-      bullets: [
-        '"Pro rata" simply means "in proportion." If you work 3 days out of a standard 5-day week, your gross salary is prorated to 60%.',
-        'Dropping your hours by 20% does NOT mean your take-home pay drops by 20%. Because of the UK\'s £12,570 tax-free Personal Allowance, part-time work is incredibly tax-efficient.',
-        'Use our interactive slider to instantly visualize how changing your working days impacts your National Insurance, Income Tax, and final monthly budget.'
-      ],
-      fullContent: (
-        <div className="space-y-6 text-zinc-700 leading-relaxed text-sm">
-          <p>
-            Whether you are stepping back to care for family, starting a side hustle, or simply reclaiming your Fridays, dropping to a part-time schedule is a massive life decision. But the biggest question holding people back is always the same: <em>"Can I actually afford to live on a pro rata salary?"</em>
-          </p>
-
-          <h3 className="text-lg font-semibold text-zinc-900 mt-6">The Pro Rata Tax Advantage</h3>
-          <p>
-            When calculating part-time wage adjustments in the UK, many people make the mistake of simply chopping their net pay in half. Fortunately, the math works heavily in your favor. 
-          </p>
-          <p>
-            Because your <strong>£12,570 tax-free Personal Allowance</strong> remains exactly the same whether you work two days or five, a much larger percentage of your pro rata salary falls into the 0% tax bracket. This means dropping your hours by 20% (going from 5 days to 4) usually results in a take-home pay drop of only 12% to 15%.
-          </p>
-
-          <h3 className="text-lg font-semibold text-zinc-900 mt-6">Map Your Part-Time Transition with NetPayFlow</h3>
-          <p>
-            You do not need a spreadsheet to figure out if you can afford to drop a working day. <strong>NetPayFlow</strong> maps the exact financial pipeline of your new lifestyle from gross salary all the way down to your savings goals. 
-          </p>
-          
-          <p>
-            Here is how to test-drive your new part-time life:
-          </p>
-
-          <ul className="list-disc pl-5 space-y-3 mt-2">
-            <li>
-              <strong>1. Slide into Your New Hours:</strong> Start at the Salary Calculator. Input your full-time Equivalent (FTE) gross salary, hit the <strong>Pro Rata Toggle</strong>, and move the slider to your desired working days (e.g., 3 or 4 days). Watch your exact Income Tax and National Insurance deductions recalculate instantly.
-              <div className="mt-4">
-                <BlogEmbeddableProRataSlider />
-              </div>
-            </li>
-            <li>
-              <strong>2. Stress-Test Your Budget:</strong> Let your new pro rata take-home pay <em>flow</em> automatically into the Budget Planner. Input your rent, mortgage, and core bills to see if your new income comfortably covers your lifestyle. 
-            </li>
-            <li>
-              <strong>3. Find Your New Surplus:</strong> Even on part-time hours, you might have cash left over. Look at your new <strong>Surplus Cash</strong> figure and use the Target slider to allocate a safe, realistic amount you can still afford to save.
-            </li>
-            <li>
-              <strong>4. Adjust Your Goals:</strong> Flow that new Target amount into the Savings Compound or Debt Overpayment calculators. You can instantly see how your new part-time schedule shifts the timeline for paying off your mortgage or maxing out your ISA.
-            </li>
-          </ul>
-
-          <p className="mt-6">
-            Time is the most valuable asset you have. By mapping your pro rata salary through the NetPayFlow pipeline, you can confidently buy back your time without breaking your budget. Hit the simulation button above to test a 3-day week right now!
           </p>
         </div>
       )

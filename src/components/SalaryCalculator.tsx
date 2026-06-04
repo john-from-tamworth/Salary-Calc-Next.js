@@ -19,8 +19,7 @@ import {
   AlertTriangle,
   HeartCrack,
   Coins,
-  RotateCcw,
-  BookOpen
+  RotateCcw
 } from 'lucide-react';
 
 interface SalaryCalculatorProps {
@@ -377,7 +376,7 @@ export default function SalaryCalculator({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-150 pb-5">
         <div>
           <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-            HMRC PAYROLL ENGINE 2025/26
+            HMRC PAYROLL ENGINE 2026/27
           </span>
           <h2 className="text-xl font-black text-zinc-950 mt-1.5 flex items-center gap-2">
             NetPayFlow Salary Workspace
@@ -386,43 +385,15 @@ export default function SalaryCalculator({
             <p>
               <strong>Follow your money’s flow.</strong> In NetPayFlow, your Net Pay flows directly into your Budget Planner, uncovering a monthly surplus that then flows forward to accelerate your savings or crush your mortgage decades early.
             </p>
-            <p>
-              Use the <strong>Compare A/B</strong> toggle for an instant <strong>wage comparison</strong>. Whether you are testing new job offers, calculating part-time <strong>pro rata pay</strong>, or checking <strong>hourly pay</strong> rates, simply choose your strongest scenario and watch your new income flow through the rest of your plan.
-            </p>
+            <div className="text-gray-600 space-y-2">
+              <p><strong>Getting started takes seconds:</strong></p>
+              <p>1. <strong>Input your income:</strong> Enter your full-time salary, hourly rate, or part-time pro-rata pay to see your exact UK tax breakdown.</p>
+              <p>2. <strong>Compare scenarios:</strong> Test two setups side-by-side to instantly weigh up new job offers, tax bands, or pension adjustments.</p>
+              <p>3. <strong>Map your surplus:</strong> Pick your strongest scenario and watch your final net income flow straight into your live budget plan.</p>
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className={`px-3.5 py-2 rounded-xl border transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
-              showInfo
-                ? 'bg-zinc-100 border-zinc-300 text-zinc-900 shadow-sm'
-                : 'bg-white border-zinc-200 text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900'
-            }`}
-            id="btn-salary-info-toggle"
-          >
-            <HelpCircle className="w-4 h-4 text-emerald-500" />
-            <span>Data Sources and Methodology</span>
-          </button>
-          <button
-            onClick={() => {
-              setCurrentPage('blog');
-              setViewingArticleId('how-to-use-netpayflow');
-            }}
-            className="px-3.5 py-2 rounded-xl border bg-white border-zinc-200 text-zinc-650 hover:bg-zinc-50 hover:text-zinc-900 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-          >
-            <BookOpen className="w-4 h-4 text-emerald-500" />
-            <span>How to use the site</span>
-          </button>
-        </div>
       </div>
-
-      {showInfo && (
-        <div className="transition-all duration-300">
-          <InfoSection />
-        </div>
-      )}
 
       {/* Comparison Scenario Tabs */}
       {compareMode && (

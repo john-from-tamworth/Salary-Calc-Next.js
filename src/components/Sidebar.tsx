@@ -46,20 +46,20 @@ export default function Sidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-zinc-950 text-zinc-300 select-none pb-4 font-sans border-r border-zinc-800">
       {/* Brand Header */}
-      <div className={`p-5 flex items-center justify-between border-b border-zinc-900 ${collapsed ? 'justify-center' : ''}`}>
+      <div className={`hidden md:flex p-3 items-center justify-between border-b border-zinc-900 ${collapsed ? 'justify-center' : ''}`}>
         {!collapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-505 bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-sm shadow-md shadow-emerald-900/40">
-              <Coins className="w-4 h-4" />
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-[10px] shadow-md shadow-emerald-900/40">
+              <Coins className="w-3 h-3" />
             </div>
             <div>
-              <span className="font-extrabold text-white tracking-tight text-base leading-none block">NetPayFlow</span>
-              <span className="text-[10px] text-zinc-500 font-mono mt-0.5 block">HMRC 2025/26</span>
+              <span className="font-extrabold text-white tracking-tight text-xs leading-none block">NetPayFlow</span>
+              <span className="text-[8px] text-zinc-500 font-mono mt-0.5 block">HMRC 2026/27</span>
             </div>
           </div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-sm">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-[10px]">
             N
           </div>
         )}
@@ -72,7 +72,7 @@ export default function Sidebar({
       </div>
 
       {/* Navigation Space */}
-      <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         {menuItems.map(item => {
           const isActive = currentPage === item.id;
           const Icon = item.icon;
@@ -138,7 +138,7 @@ export default function Sidebar({
 
       {/* Mobile Sidebar Overlay Drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 flex">
+        <div className="md:hidden fixed inset-0 z-[60] flex">
           {/* Backdrop */}
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           {/* Drawer body */}
