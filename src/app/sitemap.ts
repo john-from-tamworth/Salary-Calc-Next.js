@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://ais-dev-q5wcnvsqa3wjjn3jbsahl4-510335315071.europe-west1.run.app';
+  const baseUrl = 'https://netpayflow.co.uk';
 
   // Core pages
   const routes = [
