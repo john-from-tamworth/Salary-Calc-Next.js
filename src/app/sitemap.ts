@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://netpayflow.co.uk';
+  const baseUrl = 'https://www.netpayflow.co.uk';
 
   // Core pages
   const routes = [
