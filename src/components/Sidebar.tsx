@@ -1,4 +1,6 @@
+'use client'
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Calculator,
   PiggyBank,
@@ -29,17 +31,23 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen
 }: SidebarProps) {
+  const router = useRouter();
+  
   const menuItems = [
     { id: 'salary-calculator', label: 'Salary Calculator', icon: Calculator, desc: 'Calculate HMRC taxes' },
     { id: 'budget-planner', label: 'Budget Planner', icon: PiggyBank, desc: 'Expense tracker' },
     { id: 'savings-compounder', label: 'Savings Compounder', icon: TrendingUp, desc: 'Compound growth' },
     { id: 'debt-overpayment', label: 'Debt Overpayment', icon: CreditCard, desc: 'Save interest & time' },
-    { id: 'blog', label: 'Financial Insights', icon: BookOpen, desc: 'UK tax tips & guides' },
+    { id: 'blog', label: 'Blog & Financial Insights', icon: BookOpen, desc: 'UK tax tips & guides' },
   ];
 
-  const handleNav = (id: string) => {
-    console.log("Sidebar handleNav received ID:", id);
-    setCurrentPage(id);
+  const handleNav = (item: { id: string, label: string, icon: any, desc: string }) => {
+    console.log("Sidebar handleNav received ID:", item.id);
+    if (item.id === 'blog') {
+      router.push('/blog');
+      return;
+    }
+    setCurrentPage(item.id);
     setMobileOpen(false);
   };
 
@@ -48,7 +56,7 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className={`hidden md:flex p-3 items-center justify-between border-b border-zinc-900 ${collapsed ? 'justify-center' : ''}`}>
         {!collapsed && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => router.push('/')}>
             <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-[10px] shadow-md shadow-emerald-900/40">
               <Coins className="w-3 h-3" />
             </div>
@@ -59,7 +67,7 @@ export default function Sidebar({
           </div>
         )}
         {collapsed && (
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-[10px]">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 text-zinc-950 flex items-center justify-center font-black text-[10px] cursor-pointer" onClick={() => router.push('/')}>
             N
           </div>
         )}
@@ -79,7 +87,7 @@ export default function Sidebar({
           return (
             <button
               key={item.id}
-              onClick={() => handleNav(item.id)}
+              onClick={() => handleNav(item)}
               className={`cursor-pointer w-full rounded-xl flex items-center gap-3.5 px-3 py-3 transition-all text-left ${
                 isActive
                   ? 'bg-zinc-900 text-white font-semibold border-l-2 border-emerald-500'
@@ -90,7 +98,7 @@ export default function Sidebar({
               {!collapsed && (
                 <div className="flex-grow min-w-0">
                   <span className="text-xs leading-none block">{item.label}</span>
-                  <span className={`text-[9px] font-medium leading-none block mt-1 transition-colors ${isActive ? 'text-zinc-450' : 'text-zinc-650'}`}>
+                  <span className={`text-[9px] font-medium leading-none block mt-1 transition-colors ${isActive ? 'text-zinc-400' : 'text-zinc-650'}`}>
                     {item.desc}
                   </span>
                 </div>

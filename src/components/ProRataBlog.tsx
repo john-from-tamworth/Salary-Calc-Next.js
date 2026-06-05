@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import BlogEmbeddableProRataSlider from './BlogEmbeddableProRataSlider';
 
 export default function ProRataBlog() {
@@ -109,7 +110,7 @@ export default function ProRataBlog() {
           Interactive Scenario: Test Your Hours
         </h2>
         <p className="text-sm text-gray-600 mb-6">
-          Use the toggle below to see exactly how your gross and net pay shifts when you step down from a standard 5-day week to a 4-day schedule. Notice how the tax and student loan burdens shrink disproportionately compared to the gross reduction.
+          Adjust the slider below to see exactly how your gross and net pay shifts as you adjust your working days from a standard 5-day week to part-time. Notice how the tax and student loan burdens shrink disproportionately compared to the gross reduction, providing a clearer picture of your actual take-home pay.
         </p>
         
         <div className="my-6">
@@ -153,7 +154,33 @@ export default function ProRataBlog() {
         </p>
       </section>
 
-      {/* Section 7: Broader savings */}
+      {/* Section 7: Pro Rata Bonus */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">
+          Calculating Pro-Rata Bonuses
+        </h2>
+        <p className="mb-4">
+          Bonuses can be a significant part of your remuneration, and it's essential to understand how they are handled when you move to part-time hours. Just like your annual salary, your annual bonus entitlement is typically pro-rated based on your contractual working hours.
+        </p>
+        <p className="mb-4">
+          If your bonus is calculated as a percentage of your salary (e.g., 10% of gross), it will automatically be calculated on your lower pro-rata salary. However, if your contract specifies a fixed bonus amount, it may need to be adjusted proportionately.
+        </p>
+        <p className="mb-4">
+          NetPayFlow’s salary calculator makes this simple. By setting your working hours, the tool automatically adjusts your gross figure, meaning any percentage-based bonus calculations are immediately projected based on your new, part-time salary—letting you see the net impact on your true take-home pay instantly.
+        </p>
+        
+        <div className="my-6">
+          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-900 mb-2">Pro-Rata Bonus Calculator</h3>
+            <p className="text-xs text-gray-500 mb-4">Adjust your working hours in the salary calculator to see your pro-rata bonus projection.</p>
+            <Link href="/?page=salary-calculator" className="text-xs font-semibold bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">
+              Open Salary Calculator
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 8: Broader savings */}
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">
           The Hidden Savings of Buying Back Your Time

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, FormEvent } from 'react';
 import { Sparkles, TrendingUp, Plus, Trash2, Landmark, Info, PieChart, ChevronDown, ChevronUp, CheckCircle, ShieldAlert, Heart, Coins } from 'lucide-react';
 import { ExpenseItem } from '../types';
+import { formatGBP } from '../lib/utils';
 
 interface BudgetPlannerProps {
   monthlyTakeHomeA: number;
@@ -14,7 +15,6 @@ interface BudgetPlannerProps {
   setAllocatedSavings: React.Dispatch<React.SetStateAction<number>>;
   expenses: ExpenseItem[];
   setExpenses: React.Dispatch<React.SetStateAction<ExpenseItem[]>>;
-  formatGBP: (v: number) => string;
 }
 
 // Custom Category Definitions & Icons / Colors
@@ -88,8 +88,7 @@ export default function BudgetPlanner({
   allocatedSavings,
   setAllocatedSavings,
   expenses,
-  setExpenses,
-  formatGBP
+  setExpenses
 }: BudgetPlannerProps) {
   // Toggle show/hide the legacy targets percentages
   const [showTargetsPanel, setShowTargetsPanel] = useState<boolean>(false);

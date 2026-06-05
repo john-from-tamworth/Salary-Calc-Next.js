@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useMemo } from 'react';
 import { Sparkles, Coins, HelpCircle, AlertCircle, CreditCard, ShieldAlert, Zap, Calendar, Trophy, Check, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -5,13 +6,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 interface DebtOverpaymentProps {
   monthlySurplus: number;
   allocatedSavings: number;
-  formatGBP: (v: number) => string;
 }
 
 export default function DebtOverpayment({
   monthlySurplus,
-  allocatedSavings,
-  formatGBP
+  allocatedSavings
 }: DebtOverpaymentProps) {
   // Inputs & states
   const [debts, setDebts] = useState<{ id: string; label: string; type: 'mortgage' | 'creditcard' | 'personalloan'; amount: string; rate: string; term: number }[]>([
@@ -20,6 +19,9 @@ export default function DebtOverpayment({
   const [selectedDebtId, setSelectedDebtId] = useState<string>('1');
   const [isChartVisible, setIsChartVisible] = useState(true);
   const [isTableVisible, setIsTableVisible] = useState(false);
+
+  // Import formatGBP locally inside the component from utility
+  const formatGBP = (v: number) => `£${v.toLocaleString()}`;
 
   const selectedDebt = useMemo(() => debts.find(d => d.id === selectedDebtId) || debts[0], [debts, selectedDebtId]);
 

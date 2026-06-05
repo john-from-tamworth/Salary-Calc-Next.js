@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { SalaryBreakdown } from '../types';
 import { Calendar, Clock, TrendingUp, TrendingDown } from 'lucide-react';

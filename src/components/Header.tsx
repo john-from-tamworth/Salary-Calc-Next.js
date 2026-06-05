@@ -1,4 +1,5 @@
 import { PiggyBank, Receipt, Settings, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeaderProps {
   onShowInfo: () => void;
@@ -20,6 +21,7 @@ export default function Header({ onShowInfo, showInfo }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link href="/blog" className="hidden sm:inline-flex px-3 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors">Blog & Financial Insights</Link>
           <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Tax Year 2026/27 Ready

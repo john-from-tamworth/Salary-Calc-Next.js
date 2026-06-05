@@ -1,12 +1,32 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://ais-dev-q5wcnvsqa3wjjn3jbsahl4-510335315071.europe-west1.run.app';
+  const baseUrl = 'https://netpayflow.co.uk';
 
   // Core pages
   const routes = [
     {
       url: baseUrl,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/contact`,
       lastModified: new Date(),
     },
   ];
@@ -15,9 +35,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogSlugs = [
     'how-to-use-netpayflow',
     'tax-trap',
+    'pro-rata-salary',
     'salary-sacrifice',
     'overpayment-math',
-    'pro-rata-salary',
     'scottish-tax',
     'compare-job-offers',
     'savings-compounder',

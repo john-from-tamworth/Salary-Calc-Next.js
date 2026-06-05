@@ -6,17 +6,16 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import PrivacyPolicy from '../components/PrivacyPolicy';
-import AboutUs from '../components/AboutUs';
-import TermsOfService from '../components/TermsOfService';
+import Link from 'next/link';
 import Sidebar from '../components/Sidebar';
 import SalaryCalculator from '../components/SalaryCalculator';
 import BudgetPlanner from '../components/BudgetPlanner';
 import SavingsCompounder from '../components/SavingsCompounder';
 import DebtOverpayment from '../components/DebtOverpayment';
-import Blog from '../components/Blog';
+import BlogList from '../components/BlogList';
 import ToolNavigation from '../components/ToolNavigation';
 import InfoSection from '../components/InfoSection';
+import Footer from '../components/Footer';
 import { ArrowLeft, ArrowRight, Calculator, PiggyBank, TrendingUp, CreditCard } from 'lucide-react';
 import { calculateSalaryDetails, getMarginalTaxRate, parseTaxCode } from '../calculator';
 import { SalaryInputs, ExpenseItem } from '../types';
@@ -530,9 +529,6 @@ export default function Home() {
   const [isBenefitsOpen, setIsBenefitsOpen] = useState<boolean>(false);
   const [isTaxCodesOpen, setIsTaxCodesOpen] = useState<boolean>(false);
   const [isStudentLoansOpen, setIsStudentLoansOpen] = useState<boolean>(false);
-  const [showPrivacy, setShowPrivacy] = useState<boolean>(false);
-  const [showAbout, setShowAbout] = useState<boolean>(false);
-  const [showTerms, setShowTerms] = useState<boolean>(false);
 
   const handleNavClick = (page: string) => {
     console.log("Nav click:", page);
@@ -576,6 +572,10 @@ export default function Home() {
               </span>
             </div>
           </div>
+          
+          <Link href="/blog" className="px-3 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
+            Blog & Financial Insights
+          </Link>
           
           {compareMode && (
           <div className="flex items-center gap-3 self-start sm:self-center">
@@ -638,7 +638,6 @@ export default function Home() {
               handleRegionChange={handleRegionChange}
               toggleStudentLoan={toggleStudentLoan}
               handleSalaryPreset={handleSalaryPreset}
-              formatGBP={formatGBP}
               showInfo={showInfo}
               setShowInfo={setShowInfo}
               isBenefitsOpen={isBenefitsOpen}
@@ -719,7 +718,6 @@ export default function Home() {
                 setAllocatedSavings={setAllocatedSavings}
                 expenses={expenses}
                 setExpenses={setExpenses}
-                formatGBP={formatGBP}
               />
               <ToolNavigation 
                 previousPage={{ path: 'salary-calculator', label: 'Salary Calculator', icon: Calculator }}
@@ -728,9 +726,13 @@ export default function Home() {
               />
               <div className="flex justify-start mt-2">
                 <button
-                    onClick={() => setCurrentPage('debt-overpayment')}
+                    onClick={() => {
+                        setCurrentPage('debt-overpayment');
+                        window.scrollTo(0, 0);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition"
                 >
+                    <CreditCard className="w-4 h-4" />
                     Or skip to Debt Overpayment
                     <ArrowRight className="w-4 h-4" />
                 </button>
@@ -743,7 +745,6 @@ export default function Home() {
               <SavingsCompounder
                 monthlySurplus={monthlySurplus}
                 allocatedSavings={allocatedSavings}
-                formatGBP={formatGBP}
               />
               <ToolNavigation 
                 previousPage={{ path: 'budget-planner', label: 'Budget Planner', icon: PiggyBank }}
@@ -751,9 +752,13 @@ export default function Home() {
               />
               <div className="flex justify-end mt-2">
                 <button
-                    onClick={() => setCurrentPage('debt-overpayment')}
+                    onClick={() => {
+                        setCurrentPage('debt-overpayment');
+                        window.scrollTo(0, 0);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition"
                 >
+                    <CreditCard className="w-4 h-4" />
                     Continue to Debt Overpayment
                     <ArrowRight className="w-4 h-4" />
                 </button>
@@ -766,7 +771,6 @@ export default function Home() {
               <DebtOverpayment
                 monthlySurplus={monthlySurplus}
                 allocatedSavings={allocatedSavings}
-                formatGBP={formatGBP}
               />
               <ToolNavigation 
                 previousPage={{ path: 'savings-compounder', label: 'Savings Compounder', icon: TrendingUp }}
@@ -776,40 +780,12 @@ export default function Home() {
           )}
 
           {currentPage === 'blog' && (
-            <Blog
-              setGrossInputA={setGrossInputA}
-              setGrossInputB={setGrossInputB}
-              setCompareMode={setCompareMode}
-              setEditingScenario={setEditingScenario}
-              setPensionRate={setPensionRate}
-              setPensionType={setPensionType}
-              toggleStudentLoan={toggleStudentLoan}
-              setStudentLoanPlans={setStudentLoanPlans}
-              setIsProRata={setIsProRata}
-              setProRataDays={setProRataDays}
-              setCurrentPage={setCurrentPage}
-              viewingArticleId={viewingArticleId}
-              setViewingArticleId={setViewingArticleId}
-            />
+            <BlogList />
           )}
           <InfoSection />
         </main>
 
-        {/* Global Compliance / HMRC Disclaimer */}
-        <footer className="border-t border-zinc-200/80 bg-zinc-100/40 py-6 text-center text-[10px] text-zinc-400 font-medium px-4 mt-auto">
-          <p>
-            © 2026 NetPayFlow. All rights reserved. 
-            <button onClick={() => setShowPrivacy(true)} className="hover:text-zinc-900 underline ml-1">Privacy Policy</button>
-            <button onClick={() => setShowAbout(true)} className="hover:text-zinc-900 underline ml-3">About Us</button>
-            <button onClick={() => setShowTerms(true)} className="hover:text-zinc-900 underline ml-3">Terms of Service</button>
-          </p>
-          <p className="mt-1 leading-relaxed">
-            HMRC Calculations represent a high-fidelity estimation for the 2026/27 income tax bands, National Insurance thresholds, and student repayment models. Consistently test options to optimize tax-efficiency.
-          </p>
-        </footer>
-        {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
-        {showAbout && <AboutUs onClose={() => setShowAbout(false)} />}
-        {showTerms && <TermsOfService onClose={() => setShowTerms(false)} />}
+        <Footer />
       </div>
     </div>
   );

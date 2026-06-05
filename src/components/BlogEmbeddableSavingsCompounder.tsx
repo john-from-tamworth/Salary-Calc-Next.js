@@ -9,7 +9,6 @@ export default function BlogEmbeddableSavingsCompounder() {
       <SavingsCompounder
         monthlySurplus={500}
         allocatedSavings={200}
-        formatGBP={formatGBP}
       />
     </div>
   );

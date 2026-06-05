@@ -3,24 +3,8 @@ import VisualSlice from './VisualSlice';
 import BreakdownTable from './BreakdownTable';
 import InfoSection from './InfoSection';
 import { SalaryInputs, SalaryBreakdown } from '../types';
-import {
-  ChevronDown,
-  ChevronUp,
-  Settings,
-  HelpCircle,
-  PiggyBank,
-  GraduationCap,
-  MapPin,
-  Check,
-  Zap,
-  Sparkles,
-  ArrowRight,
-  TrendingUp,
-  AlertTriangle,
-  HeartCrack,
-  Coins,
-  RotateCcw
-} from 'lucide-react';
+import { GraduationCap, MapPin, Check, Zap, Sparkles, ArrowRight, TrendingUp, AlertTriangle, HeartCrack, Coins, RotateCcw, ChevronDown, ChevronUp, Settings, HelpCircle, PiggyBank } from 'lucide-react';
+import { formatGBP } from '../lib/utils';
 
 interface SalaryCalculatorProps {
   grossInput: string;
@@ -67,7 +51,6 @@ interface SalaryCalculatorProps {
   handleRegionChange: (newRegion: 'UK' | 'Scotland') => void;
   toggleStudentLoan: (plan: string) => void;
   handleSalaryPreset: (preset: number) => void;
-  formatGBP: (v: number) => string;
 
   showInfo: boolean;
   setShowInfo: (show: boolean) => void;
@@ -161,7 +144,6 @@ export default function SalaryCalculator({
   handleRegionChange,
   toggleStudentLoan,
   handleSalaryPreset,
-  formatGBP,
 
   showInfo,
   setShowInfo,

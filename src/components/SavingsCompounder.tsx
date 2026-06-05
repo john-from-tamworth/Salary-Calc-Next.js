@@ -1,10 +1,11 @@
+'use client';
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, Sparkles, Coins, HelpCircle, Landmark, Check, AlertCircle, Target, Plus, Trash2, PiggyBank, ChevronUp, ChevronDown } from 'lucide-react';
+import { formatGBP } from '../lib/utils';
 
 interface SavingsCompounderProps {
   monthlySurplus: number;
   allocatedSavings: number;
-  formatGBP: (v: number) => string;
 }
 
 interface SavingsAccount {
@@ -27,8 +28,7 @@ interface SavingsGoal {
 
 export default function SavingsCompounder({
   monthlySurplus,
-  allocatedSavings,
-  formatGBP
+  allocatedSavings
 }: SavingsCompounderProps) {
   // Multiple Accounts state
   const [accounts, setAccounts] = useState<SavingsAccount[]>(() => [

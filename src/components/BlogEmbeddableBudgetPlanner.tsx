@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import BudgetPlanner from './BudgetPlanner';
 import { ExpenseItem } from '../types';
@@ -37,7 +38,6 @@ export default function BlogEmbeddableBudgetPlanner() {
         setAllocatedSavings={setAllocatedSavings}
         expenses={expenses}
         setExpenses={setExpenses}
-        formatGBP={formatGBP}
       />
     </div>
   );
